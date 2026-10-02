@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arenas de Conversação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: coluna única de leitura (máx. 760px), fluxo de cima para baixo seguindo os 3 passos; ingressos de horário em grade que vira 1 coluna no celular */
+:root {
+  --bg: #fdf7f8;
+  --surface: #ffffff;
+  --fg: #2a1a1f;
+  --muted: #6e5a61;
+  --line: #f0dde2;
+  --accent: #ea5167;
+  --accent-ink: #c2344b;
+  --accent-soft: #fde4e8;
+  --on-accent: #ffffff;
+  --lv-rc: #f29b4b;
+  --lv-ba: #ea5167;
+  --lv-in: #8a5cd1;
+  --lv-av: #2a8f86;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Nunito Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1215; --surface: #261a1e; --fg: #f8ecef; --muted: #c4aab2; --line: #3d2a30;
+    --accent: #f2687c; --accent-ink: #ff8c9c; --accent-soft: #3b2027; --on-accent: #1b1215;
+    --lv-rc: #f5ad6a; --lv-ba: #f2687c; --lv-in: #ad86ea; --lv-av: #4fbcb2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1215; --surface: #261a1e; --fg: #f8ecef; --muted: #c4aab2; --line: #3d2a30;
+  --accent: #f2687c; --accent-ink: #ff8c9c; --accent-soft: #3b2027; --on-accent: #1b1215;
+  --lv-rc: #f5ad6a; --lv-ba: #f2687c; --lv-in: #ad86ea; --lv-av: #4fbcb2;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 1.125rem; line-height: 1.6;
+  margin: 0; padding-inline: 16px; padding-block: 0 96px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(1.6rem, 4.5vw, 2rem); font-weight: 800; }
+h3 { font-size: 1.25rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent-ink); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.eyebrow { font-size: .85rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); }
+section { display: flex; flex-direction: column; gap: 20px; }
+
+/* Topo */
+header.hero { padding-top: 48px; display: flex; flex-direction: column; gap: 18px; }
+.hero h1 { font-size: clamp(2.3rem, 8vw, 3.6rem); font-weight: 800; letter-spacing: -.02em; }
+.hero h1 span { color: var(--accent); }
+.hero .welcome { font-size: 1.25rem; color: var(--muted); max-width: 34ch; }
+.instructions {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 24px; display: flex; flex-direction: column; gap: 14px;
+}
+.instructions p { max-width: 65ch; }
+.alert {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--accent-soft); border-radius: 12px; padding: 14px 16px; font-weight: 700;
+}
+.alert svg { flex: none; margin-top: 3px; }
+
+/* Regra de frequência */
+.rules { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rule { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+.rule .big { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--accent-ink); line-height: 1.1; }
+.rule .who { font-weight: 700; }
+.rule .note { color: var(--muted); font-size: 1rem; }
+@media (max-width: 520px) { .rules { grid-template-columns: 1fr; } }
+
+/* Passos */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; counter-reset: s; }
+.steps li { counter-increment: s; display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-size: 1rem; line-height: 1.3; }
+.steps li::before {
+  content: counter(s); width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center; font-family: var(--font-display);
+  background: var(--accent-soft); color: var(--accent-ink);
+}
+.steps li.on { border-color: var(--accent); }
+.steps li.on::before { background: var(--accent); color: var(--on-accent); }
+.steps li small { font-weight: 400; color: var(--muted); font-size: .9rem; }
+
+/* Níveis */
+.levels { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.level {
+  --c: var(--accent);
+  text-align: left; font: inherit; color: inherit; cursor: pointer;
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0;
+  transition: border-color .15s, transform .15s;
+}
+.level:hover { border-color: var(--c); }
+.level[aria-pressed="true"] { border-color: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent); }
+.level .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.level .name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; }
+.dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c); flex: none; }
+.level .desc { color: var(--muted); font-size: 1rem; line-height: 1.5; }
+.level .count { font-size: .9rem; font-weight: 700; color: var(--c); }
+.level .check { font-size: .9rem; font-weight: 700; color: var(--c); visibility: hidden; }
+.level[aria-pressed="true"] .check { visibility: visible; }
+@media (max-width: 560px) { .levels { grid-template-columns: 1fr; } }
+.lv-rc { --c: var(--lv-rc); } .lv-ba { --c: var(--lv-ba); } .lv-in { --c: var(--lv-in); } .lv-av { --c: var(--lv-av); }
+
+/* Agenda */
+.filterbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.filterbar .label { color: var(--muted); font-size: 1rem; }
+.btn-ghost { font: inherit; font-size: 1rem; font-weight: 700; background: none; border: 0; color: var(--accent-ink); cursor: pointer; text-decoration: underline; padding: 4px 0; }
+.days { display: flex; flex-direction: column; gap: 22px; }
+.day h3 { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.day h3 small { font-family: var(--font-body); font-weight: 400; font-size: 1rem; color: var(--muted); }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.slot {
+  --c: var(--accent);
+  display: grid; grid-template-columns: auto 1fr; align-items: stretch;
+  text-decoration: none; color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  transition: transform .15s, border-color .15s;
+}
+.slot:hover { border-color: var(--c); transform: translateY(-2px); }
+.slot .time {
+  background: var(--c); color: var(--on-accent);
+  font-family: var(--font-display); font-weight: 800; font-size: 1.6rem;
+  padding: 14px 16px; display: grid; place-items: center; font-variant-numeric: tabular-nums;
+  border-right: 2px dashed color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.slot .info { padding: 10px 14px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.slot .lvl { font-weight: 700; }
+.slot .go { font-size: .95rem; color: var(--accent-ink); font-weight: 700; }
+.tz { color: var(--muted); font-size: 1rem; }
+
+/* Checklist e regras */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 620px) { .two { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.panel li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.45; }
+.panel li svg { flex: none; margin-top: 4px; color: var(--accent); }
+.checklist label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; line-height: 1.45; }
+.checklist input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; margin-top: 2px; }
+.checklist input:checked + span { color: var(--muted); text-decoration: line-through; }
+
+/* FAQ */
+.faq { display: flex; flex-direction: column; gap: 10px; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0 18px; }
+summary { cursor: pointer; font-weight: 700; padding: 16px 0; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font-family: var(--font-display); font-size: 1.5rem; line-height: 1; color: var(--accent); }
+details[open] summary::after { content: "–"; }
+details p { padding-bottom: 16px; color: var(--muted); }
+
+footer { text-align: center; color: var(--muted); font-size: 1rem; }
+
+/* WhatsApp */
+.wa {
+  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-radius: 999px;
+  background: #1f9d55; color: #ffffff; font-weight: 700; text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,.2);
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="eyebrow">Método Tia do Inglês</span>
+    <h1>Agendamento das <span>Arenas de Conversação</span></h1>
+    <p class="welcome">Aqui você pratica sem medo. Cada conversa deixa o seu inglês mais natural.</p>
+    <div class="instructions">
+      <span class="eyebrow">Como funciona</span>
+      <p>As Arenas de Conversação são espaços seguros para praticar seu inglês. Para se inscrever, deve escolher o nível da Arena, Escolher o dia e horário disponível e depois preencher os dados. Após o preenchimento dos dados pessoais vai chegar um email de confirmação na caixa de entrada com o Link para participar. É importante salvar o Link e entrar na arena com 5 minutos de antecedência do horário marcado. Entradas após 5 minutos de atraso não serão permitidas.</p>
+      <div class="alert">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none"/><path d="M12 7v5l3 2"/></svg>
+        <span>Entre 5 minutos antes. Depois de 5 minutos de atraso, a entrada não é permitida.</span>
+      </div>
+    </div>
+  </header>
+
+  <section aria-labelledby="freq">
+    <span class="eyebrow">Quantas vezes posso participar?</span>
+    <h2 id="freq">Sua frequência depende do seu programa</h2>
+    <div class="rules">
+      <div class="rule">
+        <span class="who">Alunas da Mentoria</span>
+        <span class="big">Ilimitado</span>
+        <span class="note">Participe de quantas Arenas quiser, todas as semanas.</span>
+      </div>
+      <div class="rule">
+        <span class="who">Alunas do Método Tia do Inglês</span>
+        <span class="big">1x por semana</span>
+        <span class="note">Escolha uma Arena por semana (de segunda a sexta).</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="passos">
+    <span class="eyebrow">Inscrição</span>
+    <h2 id="passos">Em 3 passos</h2>
+    <ol class="steps" id="steps">
+      <li class="on">Escolha o nível<small>Logo abaixo</small></li>
+      <li>Escolha dia e horário<small>Na agenda da semana</small></li>
+      <li>Preencha seus dados<small>Na página do Zoom</small></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="niveis">
+    <span class="eyebrow">Passo 1</span>
+    <h2 id="niveis">Qual é o meu nível?</h2>
+    <p class="tz">Leia as descrições e escolha a que mais parece com você hoje. Na dúvida, escolha o nível mais tranquilo.</p>
+    <div class="levels" id="levels"></div>
+  </section>
+
+  <section aria-labelledby="agenda" id="agenda-sec">
+    <span class="eyebrow">Passo 2</span>
+    <h2 id="agenda">Escolha o dia e o horário</h2>
+    <div class="filterbar">
+      <span class="label" id="filterLabel">Mostrando todos os níveis · horário de Brasília</span>
+      <button class="btn-ghost" id="showAll" type="button" hidden>Ver todos os níveis</button>
+    </div>
+    <div class="days" id="days"></div>
+    <p class="tz">Ao tocar no horário, abre a página de inscrição do Zoom (passo 3). Preencha seus dados e confira o e-mail de confirmação.</p>
+  </section>
+
+  <section aria-labelledby="preparo">
+    <span class="eyebrow">Antes e durante</span>
+    <h2 id="preparo">Para a sua Arena dar certo</h2>
+    <div class="two">
+      <div class="panel checklist">
+        <h3>Checklist antes da Arena</h3>
+        <label for="c1"><input type="checkbox" id="c1"><span>Salvei o link que chegou no e-mail de confirmação</span></label>
+        <label for="c2"><input type="checkbox" id="c2"><span>Coloquei um lembrete para entrar 5 minutos antes</span></label>
+        <label for="c3"><input type="checkbox" id="c3"><span>Testei fone de ouvido e microfone</span></label>
+        <label for="c4"><input type="checkbox" id="c4"><span>Câmera funcionando e rosto iluminado</span></label>
+        <label for="c5"><input type="checkbox" id="c5"><span>Estou num lugar tranquilo e com boa internet</span></label>
+      </div>
+      <div class="panel">
+        <h3>Regras do espaço seguro</h3>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Aqui ninguém julga ninguém.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Errar faz parte. É assim que a gente aprende.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Espere a colega terminar de falar e incentive.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Tente falar em inglês o máximo que conseguir.</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Câmera ligada sempre que possível.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="duvidas">
+    <span class="eyebrow">Dúvidas</span>
+    <h2 id="duvidas">Perguntas frequentes</h2>
+    <div class="faq">
+      <details><summary>O e-mail de confirmação não chegou. E agora?</summary><p>Procure nas pastas Spam, Lixo eletrônico e Promoções. Confira também se digitou o e-mail certo na inscrição. Se não encontrar, fale com o suporte.</p></details>
+      <details><summary>Posso participar de mais de uma Arena na semana?</summary><p>Alunas da Mentoria podem participar sem limite. Alunas do Método Tia do Inglês podem participar 1 vez por semana.</p></details>
+      <details><summary>E se eu me atrasar?</summary><p>Depois de 5 minutos do horário marcado, a entrada não é permitida. Se não der para chegar a tempo, faça uma nova inscrição em outro horário.</p></details>
+      <details><summary>Não vou conseguir ir. Preciso avisar?</summary><p>Sim. Avise o suporte para liberar sua vaga para outra aluna e escolha outro horário na agenda.</p></details>
+      <details><summary>Posso só ficar ouvindo?</summary><p>A Arena é um espaço para falar. Pode começar com respostas curtas, no seu ritmo. Todo mundo ali também está aprendendo.</p></details>
+      <details><summary>Escolhi o nível errado. Tem problema?</summary><p>Não tem problema. Na próxima semana, escolha o nível que combinou mais com você.</p></details>
+    </div>
+  </section>
+
+  <footer>Método Tia do Inglês · Arenas de Conversação</footer>
+</div>
+
+<a class="wa" id="wa" href="#" target="_blank" rel="noopener" hidden>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>
+  Suporte
+</a>
+
+<script>
+// ===== CONFIGURAÇÃO: edite aqui horários, links e WhatsApp =====
+const CONFIG = {
+  whatsapp: "5515991862754", // só números, com DDI 55 e DDD. Vazio = botão escondido
+  zoom: "https://us02web.zoom.us/meeting/register/",
+  niveis: {
+    rc: { nome: "Recém Chegados", cls: "lv-rc", desc: "Estou começando agora. Entendo palavras soltas e frases bem simples e quero perder o medo de abrir a boca." },
+    ba: { nome: "Básicos",        cls: "lv-ba", desc: "Consigo me apresentar e falar da minha rotina, família e gostos com frases curtas." },
+    in: { nome: "Intermediários", cls: "lv-in", desc: "Converso sobre o dia a dia e conto histórias no passado, mas ainda travo às vezes." },
+    av: { nome: "Avançados",      cls: "lv-av", desc: "Converso sobre vários assuntos com facilidade e quero ganhar naturalidade e vocabulário." }
+  },
+  // dia: 1 = segunda ... 5 = sexta
+  arenas: [
+    { dia: 1, hora: "17h", nivel: "av", id: "cl7XYDoLTl69JFkQ76z3pg" },
+    { dia: 1, hora: "18h", nivel: "ba", id: "DoAWDF_zT3u27ZXabT7LbQ" },
+    { dia: 1, hora: "20h", nivel: "in", id: "dyPaL-lMSU2e-8P3gTFBWQ" },
+    { dia: 2, hora: "11h", nivel: "in", id: "lsKW0x7pSH2aEL8763BvPQ" },
+    { dia: 3, hora: "11h", nivel: "ba", id: "70zofEC8QIWoEZsxyOgD-g" },
+    { dia: 3, hora: "18h", nivel: "rc", id: "pfTIZ1SBQMq3PYU1CLl52w" },
+    { dia: 3, hora: "20h", nivel: "in", id: "gmpmoTI6SISi3OtX8EeV9w" },
+    { dia: 4, hora: "11h", nivel: "in", id: "SUEK6evWQs-fxwKccQUbHQ" },
+    { dia: 4, hora: "17h", nivel: "rc", id: "lEIotPLUQ9-q01d16TQ9qQ" },
+    { dia: 4, hora: "19h", nivel: "av", id: "WXU_CIJtTGmcjXgNQfq6Kg" },
+    { dia: 5, hora: "11h", nivel: "ba", id: "20NHPJk6Rv-Df2vntMevlQ" }
+  ]
+};
+// ================================================================
+
+const DIAS = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+let selected = null;
+
+function nextDate(dia, hora) {
+  const now = new Date();
+  const d = new Date(now);
+  let diff = (dia - now.getDay() + 7) % 7;
+  const h = parseInt(hora, 10);
+  if (diff === 0 && now.getHours() >= h) diff = 7;
+  d.setDate(now.getDate() + diff);
+  return d.getDate() + " " + MESES[d.getMonth()];
+}
+
+function renderLevels() {
+  const box = document.getElementById("levels");
+  box.innerHTML = "";
+  Object.entries(CONFIG.niveis).forEach(([key, n]) => {
+    const total = CONFIG.arenas.filter(a => a.nivel === key).length;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "level " + n.cls;
+    b.id = "lv-" + key;
+    b.setAttribute("aria-pressed", selected === key ? "true" : "false");
+    b.innerHTML = `<span class="top"><span class="name">${n.nome}</span><span class="dot"></span></span>
+      <span class="desc">${n.desc}</span>
+      <span class="count">${total} ${total === 1 ? "horário" : "horários"} por semana</span>
+      <span class="check">✓ Nível escolhido</span>`;
+    b.addEventListener("click", () => {
+      selected = selected === key ? null : key;
+      update();
+      if (selected) document.getElementById("agenda-sec").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    box.appendChild(b);
+  });
+}
+
+function renderDays() {
+  const box = document.getElementById("days");
+  box.innerHTML = "";
+  const list = CONFIG.arenas.filter(a => !selected || a.nivel === selected);
+  [1, 2, 3, 4, 5].forEach(dia => {
+    const items = list.filter(a => a.dia === dia).sort((a, b) => parseInt(a.hora) - parseInt(b.hora));
+    if (!items.length) return;
+    const wrap = document.createElement("div");
+    wrap.className = "day";
+    wrap.innerHTML = `<h3>${DIAS[dia]} <small>próxima: ${nextDate(dia, items[0].hora)}</small></h3><div class="slots"></div>`;
+    const slots = wrap.querySelector(".slots");
+    items.forEach(a => {
+      const n = CONFIG.niveis[a.nivel];
+      const link = document.createElement("a");
+      link.className = "slot " + n.cls;
+      link.href = CONFIG.zoom + a.id;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.setAttribute("aria-label", `${DIAS[dia]} às ${a.hora}, nível ${n.nome}. Abrir inscrição`);
+      link.innerHTML = `<span class="time">${a.hora}</span><span class="info"><span class="lvl">${n.nome}</span><span class="go">Inscrever-me →</span></span>`;
+      link.addEventListener("click", () => markStep(2));
+      slots.appendChild(link);
+    });
+    box.appendChild(wrap);
+  });
+}
+
+function markStep(i) {
+  document.querySelectorAll("#steps li").forEach((li, idx) => li.classList.toggle("on", idx <= i));
+}
+
+function update() {
+  renderLevels();
+  renderDays();
+  document.getElementById("showAll").hidden = !selected;
+  document.getElementById("filterLabel").textContent = selected
+    ? `Mostrando: ${CONFIG.niveis[selected].nome} · horário de Brasília`
+    : "Mostrando todos os níveis · horário de Brasília";
+  markStep(selected ? 1 : 0);
+}
+
+document.getElementById("showAll").addEventListener("click", () => { selected = null; update(); });
+
+if (CONFIG.whatsapp) {
+  const wa = document.getElementById("wa");
+  wa.href = "https://wa.me/" + CONFIG.whatsapp;
+  wa.hidden = false;
+}
+
+update();
+</script>
+</body>
+</html>
