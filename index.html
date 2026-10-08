@@ -330,6 +330,28 @@ body.modal-open { overflow: hidden; }
   </div>
 </div>
 
+<!-- Popup: limite de 1x por semana (outros cursos) -->
+<div class="modal" id="weekModal" role="dialog" aria-modal="true" aria-labelledby="weekTitle" hidden>
+  <div class="modal-box">
+    <div class="block" id="weekAsk">
+      <h2 id="weekTitle">É permitida a participação nas Arenas apenas 1x por semana</h2>
+      <p>Este e-mail já fez uma inscrição nesta semana (de segunda a domingo).</p>
+    </div>
+    <div class="actions" id="weekAskActions">
+      <button class="btn" type="button" id="weekNotYet">Ainda não participei</button>
+      <button class="btn btn-outline" type="button" id="weekDone">Já participei 1x</button>
+    </div>
+    <div class="block" id="weekBlocked" hidden>
+      <h2>Nos vemos na próxima semana!</h2>
+      <p>Você já usou a sua Arena desta semana. Faça uma nova inscrição a partir de <b id="nextMonday"></b>.</p>
+      <p class="muted small">Quer praticar sem limite? Fale com o suporte sobre a Mentoria Fluent Mind.</p>
+    </div>
+    <div class="actions" id="weekBlockedActions" hidden>
+      <button class="btn btn-outline" type="button" id="weekClose">Entendi</button>
+    </div>
+  </div>
+</div>
+
 <!-- Popup: dúvidas -->
 <div class="modal" id="faqModal" role="dialog" aria-modal="true" aria-labelledby="faqTitle" hidden>
   <div class="modal-box">
@@ -454,11 +476,44 @@ function seguirParaNivel() {
   openModal($("infoModal"));
 }
 
-$("optOutros").addEventListener("click", async () => {
+async function escolherOutros() {
   ocupado(true);
-  await enviar({ tipo: "outros" });
+  const t = $("optOutros").querySelector(".d"), antes = t.textContent;
+  t.textContent = "Conferindo suas inscrições da semana…";
+  const res = await enviar({ tipo: "outros" });
+  t.textContent = antes;
   ocupado(false);
+  if (res && res.jaEntrou) {
+    $("weekAsk").hidden = $("weekAskActions").hidden = false;
+    $("weekBlocked").hidden = $("weekBlockedActions").hidden = true;
+    openModal($("weekModal"));
+  } else {
+    seguirParaNivel();
+  }
+}
+$("optOutros").addEventListener("click", escolherOutros);
+
+function proximaSegunda() {
+  const d = new Date();
+  d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
+  return "segunda-feira, " + d.getDate() + " " + MESES[d.getMonth()];
+}
+$("weekNotYet").addEventListener("click", async () => {
+  $("weekNotYet").disabled = true;
+  await enviar({ tipo: "outros", confirmouSemana: true });
+  $("weekNotYet").disabled = false;
+  closeModal($("weekModal"));
   seguirParaNivel();
+});
+$("weekDone").addEventListener("click", () => {
+  $("nextMonday").textContent = proximaSegunda();
+  $("weekAsk").hidden = $("weekAskActions").hidden = true;
+  $("weekBlocked").hidden = $("weekBlockedActions").hidden = false;
+  $("weekClose").focus();
+});
+$("weekClose").addEventListener("click", () => {
+  closeModal($("weekModal"));
+  show("s-entrada");
 });
 
 $("optMentoria").addEventListener("click", async () => {
@@ -488,12 +543,9 @@ $("confirmFix").addEventListener("click", () => {
   show("s-entrada");
   $("fEmail").focus();
 });
-$("confirmOther").addEventListener("click", async () => {
+$("confirmOther").addEventListener("click", () => {
   closeModal($("confirmModal"));
-  ocupado(true);
-  await enviar({ tipo: "outros" });
-  ocupado(false);
-  seguirParaNivel();
+  escolherOutros();
 });
 
 // ---------- Nível ----------
