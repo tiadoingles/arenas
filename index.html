@@ -24,6 +24,7 @@
   --accent-line: rgba(46, 230, 194, .35);
   --on-accent: #04110e;
   --danger: #ff8a96;
+  --warn: #ffb547;
   --lv-rc: #ffb86b;
   --lv-ba: #ff8aa5;
   --lv-in: #b9a2ff;
@@ -171,6 +172,11 @@ summary::after { content: "+"; color: var(--accent); font-size: 1.3rem; line-hei
 details[open] summary::after { content: "–"; }
 details p { padding-bottom: 14px; color: var(--muted); }
 body.modal-open { overflow: hidden; }
+.modal-box.alerta { border-color: rgba(255, 181, 71, .55); }
+.alert-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 181, 71, .14); color: var(--warn); }
+.checks .destaque { margin-top: 6px; padding: 14px 16px; border: 1px solid var(--accent-line); border-radius: var(--radius); background: var(--accent-soft); }
+.checks .destaque span { color: var(--fg); font-size: 1.15rem; font-weight: 800; line-height: 1.4; }
+.checks .destaque input { width: 24px; height: 24px; margin-top: 2px; }
 
 /* WhatsApp */
 .wa {
@@ -268,6 +274,7 @@ body.modal-open { overflow: hidden; }
         <label for="c3"><input type="checkbox" id="c3"><span>Fone e microfone testados</span></label>
         <label for="c4"><input type="checkbox" id="c4"><span>Câmera funcionando</span></label>
         <label for="c5"><input type="checkbox" id="c5"><span>Lugar tranquilo e boa internet</span></label>
+        <label for="c6" class="destaque"><input type="checkbox" id="c6"><span>VOU FAZER O DOWNLOAD DO MATERIAL NA PLATAFORMA ANTES DE PARTICIPAR</span></label>
       </div>
     </div>
     <hr>
@@ -310,8 +317,9 @@ body.modal-open { overflow: hidden; }
 
 <!-- Popup: e-mail não encontrado na Mentoria -->
 <div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
-  <div class="modal-box">
+  <div class="modal-box alerta">
     <div class="block">
+      <div class="alert-icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
       <h2 id="confirmTitle">Você confirma essa informação?</h2>
       <p>Não encontramos o e-mail <b id="confirmEmail"></b> na lista de alunas da Mentoria Fluent Mind.</p>
       <p class="muted small">Se você usa outro e-mail na Mentoria, volte e corrija.</p>
@@ -326,8 +334,9 @@ body.modal-open { overflow: hidden; }
 
 <!-- Popup: limite de 1x por semana (outros cursos) -->
 <div class="modal" id="weekModal" role="dialog" aria-modal="true" aria-labelledby="weekTitle" hidden>
-  <div class="modal-box">
+  <div class="modal-box alerta">
     <div class="block" id="weekAsk">
+      <div class="alert-icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
       <h2 id="weekTitle">É permitida a participação nas Arenas apenas 1x por semana</h2>
       <p>Este e-mail já fez uma inscrição nesta semana (de segunda a domingo).</p>
     </div>
