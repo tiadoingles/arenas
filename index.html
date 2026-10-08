@@ -294,21 +294,15 @@ body.modal-open { overflow: hidden; }
   </footer>
 </div>
 
-<!-- Popup: como funciona + frequência -->
+<!-- Popup: como funciona -->
 <div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
   <div class="modal-box">
     <div class="block">
       <span class="kicker">Como funciona</span>
       <h2 id="infoTitle">Arenas de Conversação</h2>
-      <p>As Arenas de Conversação são espaços seguros para praticar seu inglês. Para se inscrever, deve escolher o nível da Arena, Escolher o dia e horário disponível e depois preencher os dados. Após o preenchimento dos dados pessoais vai chegar um email de confirmação na caixa de entrada com o Link para participar. É importante salvar o Link e entrar na arena com 5 minutos de antecedência do horário marcado. Entradas após 5 minutos de atraso não serão permitidas.</p>
-      <p class="note">Entre 5 minutos antes. Depois de 5 minutos de atraso, a entrada não é permitida.</p>
-    </div>
-    <div class="block">
-      <h3>Quantas vezes posso participar?</h3>
-      <div class="freq">
-        <div><span>Mentoria Fluent Mind</span><b>Ilimitado</b><span>Quantas Arenas quiser</span></div>
-        <div><span>Método Tia do Inglês</span><b>1x por semana</b><span>De segunda a sexta</span></div>
-      </div>
+      <p>As Arenas de conversação são para <strong class="accent">PRATICAR</strong> de forma segura e divertida.</p>
+      <p>Lembre-se do horário para não se atrasar.</p>
+      <p class="note">É <strong>INDISPENSÁVEL</strong> fazer o download do Material da Arena dentro da Plataforma para se preparar.</p>
     </div>
     <button class="btn" type="button" id="nextStep">Próximo passo</button>
   </div>
@@ -380,7 +374,7 @@ const CONFIG = {
   cadastroUrl: "https://script.google.com/macros/s/AKfycbxqh_dIhv6T05QD8QBigK-GOZpLosBbSVpEJjnZbkmw2zctPCCDiQo-HOOB0zooQGDt/exec", // grava na planilha "Lista Pré-Arena" e confere a Mentoria
   zoom: "https://us02web.zoom.us/meeting/register/",
   niveis: {
-    rc: { nome: "Recém Chegados", cls: "lv-rc" },
+    rc: { nome: "Recém Chegados", cls: "lv-rc", obs: "Essa arena é para quem é zerado no inglês ou está muito básico" },
     ba: { nome: "Básicos",        cls: "lv-ba" },
     in: { nome: "Intermediários", cls: "lv-in" },
     av: { nome: "Avançados",      cls: "lv-av" }
@@ -553,8 +547,9 @@ Object.entries(CONFIG.niveis).forEach(([key, n]) => {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "option " + n.cls;
-  b.innerHTML = '<span class="dot"></span><span class="t"></span><span class="arrow" aria-hidden="true">›</span>';
+  b.innerHTML = '<span class="dot"></span><span><span class="t"></span><span class="d"></span></span><span class="arrow" aria-hidden="true">›</span>';
   b.querySelector(".t").textContent = n.nome;
+  if (n.obs) b.querySelector(".d").textContent = n.obs; else b.querySelector(".d").remove();
   b.addEventListener("click", () => { selected = key; renderSlots(); show("s-horario"); });
   $("levels").appendChild(b);
 });
@@ -585,13 +580,18 @@ function renderSlots() {
   box.innerHTML = "";
   CONFIG.arenas
     .filter(a => a.nivel === selected)
-    .map(a => ({ a, d: nextOccurrence(a) }))
+    .flatMap(a => [0, 1, 2, 3].map(sem => {
+      const d = nextOccurrence(a);
+      d.setDate(d.getDate() + 7 * sem);
+      return { a, d };
+    }))
     .sort((x, y) => x.d - y.d)
+    .slice(0, 4) // a mais próxima em destaque + as 3 seguintes
     .forEach(({ a, d }, i) => {
       if (i === 1) {
         const p = document.createElement("p");
         p.className = "group-label";
-        p.textContent = "Outros horários";
+        p.textContent = "Próximas datas";
         box.appendChild(p);
       }
       const b = document.createElement("button");
