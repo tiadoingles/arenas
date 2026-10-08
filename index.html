@@ -110,6 +110,7 @@ header.hero { padding-top: 48px; display: flex; flex-direction: column; gap: 18p
 .level[aria-pressed="true"] .dot { background: var(--on-accent); }
 .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; }
 @media (max-width: 640px) { .levels { grid-template-columns: 1fr 1fr; } }
+.slot { --c: var(--accent); }
 .lv-rc { --c: var(--lv-rc); } .lv-ba { --c: var(--lv-ba); } .lv-in { --c: var(--lv-in); } .lv-av { --c: var(--lv-av); }
 
 /* Agenda */
@@ -121,7 +122,7 @@ header.hero { padding-top: 48px; display: flex; flex-direction: column; gap: 18p
 .day h3 small { font-family: var(--font-body); font-weight: 400; font-size: 1rem; color: var(--muted); }
 .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
 .slot {
-  --c: var(--accent);
+  
   display: grid; grid-template-columns: auto 1fr; align-items: stretch;
   text-decoration: none; color: var(--fg); background: var(--surface);
   border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
@@ -182,6 +183,35 @@ footer { text-align: center; color: var(--muted); font-size: 1rem; }
   background: #1f9d55; color: #ffffff; font-weight: 700; text-decoration: none;
   box-shadow: 0 6px 20px rgba(0,0,0,.2);
 }
+/* Popup de boas-vindas */
+.modal {
+  position: fixed; inset: 0; z-index: 50;
+  background: color-mix(in srgb, var(--fg) 55%, transparent);
+  display: flex; align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+.modal-box {
+  background: var(--bg); color: var(--fg); border-radius: 24px;
+  width: 100%; max-width: 620px; margin: auto; padding: 28px 22px;
+  display: flex; flex-direction: column; gap: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.modal-box h2 { font-size: clamp(1.4rem, 5vw, 1.8rem); }
+.modal-box .block { display: flex; flex-direction: column; gap: 10px; }
+.modal-box .rule .big { font-size: 1.6rem; }
+.btn-next { width: 100%; max-width: none; font-size: 1.3rem; padding: 18px 24px; border: 0; cursor: pointer; }
+body.modal-open { overflow: hidden; }
+.reopen { align-self: flex-start; }
+
+/* Lista de horários em ordem */
+.slot-list { display: flex; flex-direction: column; gap: 12px; }
+.slot .when { font-weight: 700; }
+.slot .sub { color: var(--muted); font-size: .95rem; }
+.slot.featured { border: 2px solid var(--c); }
+.slot.featured .time { font-size: 2.2rem; padding: 20px 22px; }
+.badge { align-self: flex-start; background: var(--c); color: var(--on-accent); font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; margin-bottom: 4px; }
+.later { color: var(--muted); font-size: 1rem; font-weight: 700; margin-top: 6px; }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -191,45 +221,10 @@ footer { text-align: center; color: var(--muted); font-size: 1rem; }
   <header class="hero">
     <span class="eyebrow">Método Tia do Inglês</span>
     <h1>Agendamento das <span>Arenas de Conversação</span></h1>
-    <p class="welcome">Aqui você pratica sem medo. Cada conversa deixa o seu inglês mais natural.</p>
-    <div class="instructions">
-      <span class="eyebrow">Como funciona</span>
-      <p>As Arenas de Conversação são espaços seguros para praticar seu inglês. Para se inscrever, deve escolher o nível da Arena, Escolher o dia e horário disponível e depois preencher os dados. Após o preenchimento dos dados pessoais vai chegar um email de confirmação na caixa de entrada com o Link para participar. É importante salvar o Link e entrar na arena com 5 minutos de antecedência do horário marcado. Entradas após 5 minutos de atraso não serão permitidas.</p>
-      <div class="alert">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none"/><path d="M12 7v5l3 2"/></svg>
-        <span>Entre 5 minutos antes. Depois de 5 minutos de atraso, a entrada não é permitida.</span>
-      </div>
-    </div>
+    <button class="btn-ghost reopen" id="openInfo" type="button">Ver como funciona e frequência</button>
   </header>
 
-  <section aria-labelledby="freq">
-    <span class="eyebrow">Quantas vezes posso participar?</span>
-    <h2 id="freq">Sua frequência depende do seu programa</h2>
-    <div class="rules">
-      <div class="rule">
-        <span class="who">Alunas da Mentoria</span>
-        <span class="big">Ilimitado</span>
-        <span class="note">Participe de quantas Arenas quiser, todas as semanas.</span>
-      </div>
-      <div class="rule">
-        <span class="who">Alunas do Método Tia do Inglês</span>
-        <span class="big">1x por semana</span>
-        <span class="note">Escolha uma Arena por semana (de segunda a sexta).</span>
-      </div>
-    </div>
-  </section>
-
-  <section aria-labelledby="passos">
-    <span class="eyebrow">Inscrição</span>
-    <h2 id="passos">Em 3 passos</h2>
-    <ol class="steps" id="steps">
-      <li class="on">Escolha o seu nível<small>Logo abaixo</small></li>
-      <li>Escolha dia e horário<small>Na agenda da semana</small></li>
-      <li>Prossiga para a inscrição<small>Preencha seus dados no Zoom</small></li>
-    </ol>
-  </section>
-
-  <section aria-labelledby="niveis">
+  <section aria-labelledby="niveis" id="niveis-sec" hidden>
     <span class="eyebrow">Passo 1</span>
     <h2 id="niveis">Escolha o seu nível</h2>
     <div class="levels" id="levels"></div>
@@ -238,6 +233,7 @@ footer { text-align: center; color: var(--muted); font-size: 1rem; }
   <section aria-labelledby="agenda" id="agenda-sec" hidden>
     <span class="eyebrow">Passo 2</span>
     <h2 id="agenda">Escolha o dia e o horário</h2>
+    <p class="tz">Do mais próximo para o mais distante.</p>
     <p class="tz" id="filterLabel">Horário de Brasília</p>
     <div class="days" id="days"></div>
   </section>
@@ -272,7 +268,7 @@ footer { text-align: center; color: var(--muted); font-size: 1rem; }
     </div>
   </section>
 
-  <section aria-labelledby="duvidas">
+  <section aria-labelledby="duvidas" id="faq-sec" hidden>
     <span class="eyebrow">Dúvidas</span>
     <h2 id="duvidas">Perguntas frequentes</h2>
     <div class="faq">
@@ -286,6 +282,36 @@ footer { text-align: center; color: var(--muted); font-size: 1rem; }
   </section>
 
   <footer>Método Tia do Inglês · Arenas de Conversação</footer>
+</div>
+
+<div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+  <div class="modal-box">
+    <div class="block">
+      <span class="eyebrow">Como funciona</span>
+      <h2 id="infoTitle">Arenas de Conversação</h2>
+      <p>As Arenas de Conversação são espaços seguros para praticar seu inglês. Para se inscrever, deve escolher o nível da Arena, Escolher o dia e horário disponível e depois preencher os dados. Após o preenchimento dos dados pessoais vai chegar um email de confirmação na caixa de entrada com o Link para participar. É importante salvar o Link e entrar na arena com 5 minutos de antecedência do horário marcado. Entradas após 5 minutos de atraso não serão permitidas.</p>
+      <div class="alert">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none"/><path d="M12 7v5l3 2"/></svg>
+        <span>Entre 5 minutos antes. Depois de 5 minutos de atraso, a entrada não é permitida.</span>
+      </div>
+    </div>
+    <div class="block">
+      <span class="eyebrow">Quantas vezes posso participar?</span>
+      <div class="rules">
+        <div class="rule">
+          <span class="who">Alunas da Mentoria</span>
+          <span class="big">Ilimitado</span>
+          <span class="note">Quantas Arenas quiser, todas as semanas.</span>
+        </div>
+        <div class="rule">
+          <span class="who">Alunas do Método Tia do Inglês</span>
+          <span class="big">1x por semana</span>
+          <span class="note">Uma Arena por semana, de segunda a sexta.</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-go btn-next" id="nextStep" type="button">PRÓXIMO PASSO</button>
+  </div>
 </div>
 
 <a class="wa" id="wa" href="#" target="_blank" rel="noopener" hidden>
@@ -336,6 +362,7 @@ function nextDate(dia, hora) {
 }
 
 let chosen = null;
+let chosenDate = null;
 
 function renderLevels() {
   const box = document.getElementById("levels");
@@ -356,35 +383,62 @@ function renderLevels() {
   });
 }
 
+function nextOccurrence(a) {
+  const now = new Date();
+  const d = new Date(now);
+  d.setHours(parseInt(a.hora, 10), 0, 0, 0);
+  let diff = (a.dia - now.getDay() + 7) % 7;
+  d.setDate(now.getDate() + diff);
+  if (d <= now) d.setDate(d.getDate() + 7);
+  return d;
+}
+
+function whenLabel(d) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const day = new Date(d); day.setHours(0, 0, 0, 0);
+  const diff = Math.round((day - today) / 86400000);
+  const base = DIAS[d.getDay()] + ", " + d.getDate() + " " + MESES[d.getMonth()];
+  if (diff === 0) return "Hoje · " + base;
+  if (diff === 1) return "Amanhã · " + base;
+  return base;
+}
+
 function renderDays() {
   const box = document.getElementById("days");
   box.innerHTML = "";
   if (!selected) return;
-  const list = CONFIG.arenas.filter(a => a.nivel === selected);
-  [1, 2, 3, 4, 5].forEach(dia => {
-    const items = list.filter(a => a.dia === dia).sort((a, b) => parseInt(a.hora) - parseInt(b.hora));
-    if (!items.length) return;
-    const wrap = document.createElement("div");
-    wrap.className = "day";
-    wrap.innerHTML = '<h3>' + DIAS[dia] + ' <small>próxima: ' + nextDate(dia, items[0].hora) + '</small></h3><div class="slots"></div>';
-    const slots = wrap.querySelector(".slots");
-    items.forEach(a => {
-      const n = CONFIG.niveis[a.nivel];
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "slot " + n.cls;
-      btn.setAttribute("aria-pressed", chosen === a ? "true" : "false");
-      btn.setAttribute("aria-label", DIAS[dia] + " às " + a.hora + ", nível " + n.nome);
-      btn.innerHTML = '<span class="time">' + a.hora + '</span><span class="info"><span class="lvl">' + n.nome + '</span><span class="go">Escolher este horário</span></span>';
-      btn.addEventListener("click", () => {
-        chosen = a;
-        update();
-        document.getElementById("preparo-sec").scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-      slots.appendChild(btn);
+  const list = CONFIG.arenas
+    .filter(a => a.nivel === selected)
+    .map(a => ({ a, d: nextOccurrence(a) }))
+    .sort((x, y) => x.d - y.d);
+  const wrap = document.createElement("div");
+  wrap.className = "slot-list";
+  list.forEach(({ a, d }, i) => {
+    const n = CONFIG.niveis[a.nivel];
+    if (i === 1) {
+      const p = document.createElement("p");
+      p.className = "later";
+      p.textContent = "Outros horários";
+      wrap.appendChild(p);
+    }
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "slot " + n.cls + (i === 0 ? " featured" : "");
+    btn.setAttribute("aria-pressed", chosen === a ? "true" : "false");
+    btn.setAttribute("aria-label", whenLabel(d) + " às " + a.hora + ", nível " + n.nome);
+    btn.innerHTML = '<span class="time">' + a.hora + '</span><span class="info">' +
+      (i === 0 ? '<span class="badge">Mais próxima</span>' : '') +
+      '<span class="when">' + whenLabel(d) + '</span><span class="sub">' + n.nome + '</span>' +
+      '<span class="go">Escolher este horário</span></span>';
+    btn.addEventListener("click", () => {
+      chosen = a;
+      chosenDate = d;
+      update();
+      document.getElementById("preparo-sec").scrollIntoView({ behavior: "smooth", block: "start" });
     });
-    box.appendChild(wrap);
+    wrap.appendChild(btn);
   });
+  box.appendChild(wrap);
 }
 
 function markStep(i) {
@@ -401,7 +455,7 @@ function update() {
   const prep = document.getElementById("preparo-sec");
   prep.hidden = !chosen;
   if (chosen) {
-    document.getElementById("chosenText").textContent = DIAS[chosen.dia] + ", " + chosen.hora + " · " + CONFIG.niveis[chosen.nivel].nome;
+    document.getElementById("chosenText").textContent = whenLabel(chosenDate) + ", " + chosen.hora + " · " + CONFIG.niveis[chosen.nivel].nome;
     document.getElementById("goBtn").href = CONFIG.zoom + chosen.id;
   }
   markStep(chosen ? 2 : selected ? 1 : 0);
@@ -419,7 +473,21 @@ if (CONFIG.whatsapp) {
   wa.hidden = false;
 }
 
+const modal = document.getElementById("infoModal");
+function openInfo() { modal.hidden = false; document.body.classList.add("modal-open"); document.getElementById("nextStep").focus(); }
+function closeInfo() {
+  modal.hidden = true;
+  document.body.classList.remove("modal-open");
+  document.getElementById("niveis-sec").hidden = false;
+  document.getElementById("faq-sec").hidden = false;
+  document.getElementById("niveis-sec").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.getElementById("nextStep").addEventListener("click", closeInfo);
+document.getElementById("openInfo").addEventListener("click", openInfo);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closeInfo(); });
+
 update();
+openInfo();
 </script>
 </body>
 </html>
