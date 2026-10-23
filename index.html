@@ -216,6 +216,16 @@ body.modal-open { overflow: hidden; }
   .arena-box { padding: 20px; }
   .arena-box .checks label { padding: 5px 10px; font-size: .95rem; }
 }
+/* Demonstração do checklist */
+#arenaChecks { position: relative; }
+#arenaChecks.demo label { pointer-events: none; }
+.demo-cursor { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; transition: transform .35s ease-in-out; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .6)); }
+.demo-cursor svg { display: block; position: relative; }
+.demo-cursor.click svg { animation: demo-click .25s ease; }
+.demo-cursor .ripple { position: absolute; left: -9px; top: -9px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; }
+.demo-cursor.click .ripple { animation: demo-ripple .4s ease-out; }
+@keyframes demo-click { 50% { transform: scale(.8); } }
+@keyframes demo-ripple { from { opacity: .9; transform: scale(.4); } to { opacity: 0; transform: scale(1.6); } }
 .aviso-video { text-align: center; font-weight: 800; font-size: 1.05rem; color: var(--warn); background: rgba(255, 181, 71, .12); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 10px 14px; margin: 0; }
 .material {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
@@ -695,12 +705,63 @@ function abrirArena(key) {
   $("arenaError").textContent = "";
   openModal($("arenaModal"));
   $("arenaModal").scrollTop = $("arenaBox").scrollTop = 0; // começa no aviso e no vídeo, não no botão
+  demoChecklist();
 }
+// Demonstração: uma seta de mouse marca as caixinhas uma a uma (~3 s) e depois desmarca tudo.
+// Começa quando o checklist aparece na tela (no celular, só ao rolar até ele).
+let demoTimers = [], demoObs = null;
+function pararDemo() {
+  demoTimers.forEach(clearTimeout); demoTimers = [];
+  if (demoObs) { demoObs.disconnect(); demoObs = null; }
+  $("arenaChecks").classList.remove("demo");
+  const c = $("demoCursor"); if (c) c.remove();
+}
+function demoChecklist() {
+  pararDemo();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const box = $("arenaChecks");
+  const inputs = [...box.querySelectorAll("input")];
+  const rodar = () => {
+    box.classList.add("demo");
+    const cur = document.createElement("div");
+    cur.id = "demoCursor"; cur.className = "demo-cursor"; cur.setAttribute("aria-hidden", "true");
+    cur.innerHTML = '<span class="ripple"></span><svg width="26" height="26" viewBox="0 0 24 24"><path d="M5 3l14 7-6 2-2 6z" fill="#fff" stroke="#04110e" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+    box.appendChild(cur);
+    const pos = el => { const a = el.getBoundingClientRect(), b = box.getBoundingClientRect(); return [a.left - b.left + a.width / 2 - 4, a.top - b.top + a.height / 2 - 3]; };
+    const [x0, y0] = pos(inputs[0]);
+    cur.style.transform = "translate(" + (x0 + 60) + "px," + (y0 + 30) + "px)";
+    const passo = 2600 / inputs.length;
+    inputs.forEach((inp, i) => {
+      demoTimers.push(setTimeout(() => {
+        const [x, y] = pos(inp);
+        cur.style.transform = "translate(" + x + "px," + y + "px)";
+      }, 150 + i * passo));
+      demoTimers.push(setTimeout(() => {
+        inp.checked = true;
+        cur.classList.remove("click"); void cur.offsetWidth; cur.classList.add("click");
+      }, 150 + i * passo + passo * 0.6));
+    });
+    demoTimers.push(setTimeout(() => {
+      inputs.forEach(inp => { inp.checked = false; });
+      pararDemo();
+    }, 3000));
+  };
+  demoObs = new IntersectionObserver(es => {
+    if (es.some(e => e.isIntersecting)) { demoObs.disconnect(); demoObs = null; demoTimers.push(setTimeout(rodar, 300)); }
+  }, { threshold: 0.9 });
+  demoObs.observe(box.querySelector("label")); // começa quando a 1ª caixinha aparece (quase) inteira
+}
+
 function fecharArena() {
+  pararDemo();
   $("arenaVideo").innerHTML = ""; // para o vídeo
   closeModal($("arenaModal"));
 }
 $("arenaGo").addEventListener("click", () => {
+  if ($("arenaChecks").classList.contains("demo")) { // clicou durante a demonstração: nada vale
+    $("arenaChecks").querySelectorAll("input").forEach(i => { i.checked = false; });
+    pararDemo();
+  }
   const faltando = [...$("arenaChecks").querySelectorAll("label")].filter(l => !l.querySelector("input").checked);
   faltando.forEach(l => l.classList.add("falta"));
   if (faltando.length) {
