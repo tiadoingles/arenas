@@ -234,18 +234,40 @@ body.modal-open { overflow: hidden; }
   color: var(--accent); font-size: 1.3rem; font-weight: 800; text-decoration: none; transition: background .15s;
 }
 .material:hover { background: rgba(46, 230, 194, .18); }
-.section-title { font-size: 1.1rem; color: var(--fg); margin-bottom: -12px; }
-.labs-card {
-  display: flex; align-items: center; gap: 16px; width: 100%; font: inherit; text-align: left; color: var(--fg); cursor: pointer;
-  background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--radius); padding: 22px 22px;
-  transition: background .15s;
+/* Mentoradas: dois blocos com tons diferentes — Arenas (azul) e Fluent Labs (dourado) */
+.praticas { display: flex; flex-direction: column; gap: 20px; }
+.panel-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
+.panel-head h3 { font-size: 1.45rem; }
+.panel-kicker { font-size: .85rem; font-weight: 800; letter-spacing: .02em; color: var(--tone); }
+.is-mentorada .praticas { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch; }
+.is-mentorada .panel { border-radius: 20px; padding: 22px; border: 1px solid var(--tone-line); background: var(--tone-soft); }
+.is-mentorada .panel-arenas { --tone: #7aa2ff; --tone-line: rgba(122, 162, 255, .35); --tone-soft: rgba(122, 162, 255, .07); }
+.is-mentorada .panel-arenas .arenas { grid-template-columns: 1fr 1fr; }
+.panel-labs { --tone: #ffc857; --tone-line: rgba(255, 200, 87, .45); --tone-soft: rgba(255, 200, 87, .08); display: flex; flex-direction: column; gap: 14px; }
+.panel-labs .panel-head { margin-bottom: 0; }
+.panel-labs h3 { color: var(--tone); }
+.panel-labs img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); }
+.panel-labs p { color: var(--text); }
+.panel-labs .btn { background: var(--tone); color: #1a1405; }
+@media (max-width: 900px) {
+  .is-mentorada .praticas { grid-template-columns: 1fr; }
+  .is-mentorada .panel { padding: 16px; }
 }
-.labs-card:hover { background: rgba(46, 230, 194, .18); }
-.labs-card .t { display: block; font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-.labs-card .d { display: block; color: var(--text); font-size: .95rem; }
-.labs-card .arrow { margin-left: auto; font-size: 1.5rem; color: var(--accent); }
-a.slot { text-decoration: none; }
-.slot .entrar { margin-left: auto; font-size: .9rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
+@media (max-width: 460px) {
+  .is-mentorada .panel { padding: 12px; border-radius: 16px; }
+  .is-mentorada .panel-arenas .arenas { gap: 10px; }
+}
+.labs-slot { cursor: default; flex-wrap: wrap; }
+.labs-slot:hover { background: var(--surface); border-color: var(--line); }
+.labs-slot.featured:hover { background: var(--accent-soft); border-color: var(--accent-line); }
+.lab-btn {
+  margin-left: auto; font: inherit; font-size: .9rem; font-weight: 800; white-space: nowrap; cursor: pointer; text-decoration: none;
+  border-radius: 999px; padding: 10px 18px; border: 1px solid var(--line); background: transparent; color: var(--fg);
+}
+.lab-btn.pegar:hover { border-color: var(--accent-line); }
+.lab-btn.entrar { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.lab-btn.entrar:hover { filter: brightness(1.08); }
+@media (max-width: 460px) { .labs-slot .lab-btn { margin-left: 0; width: 100%; text-align: center; } }
 .chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; }
 
 /* Popup da Arena: vídeo + checklist */
@@ -302,14 +324,23 @@ a.slot { text-decoration: none; }
       <h2>Olá, <span class="helloName"></span>! <span id="arenasTitle">Escolha a sua Arena</span></h2>
       <p class="muted" id="arenasSub">Escolha a sua Arena para ver as instruções e fazer a sua inscrição.</p>
     </div>
-    <h3 class="section-title" id="arenasLabel" hidden>Arenas de Conversação</h3>
-    <div class="arenas" id="arenas"></div>
-    <div id="labsBlock" hidden>
-      <h3 class="section-title">Fluent Labs</h3>
-      <button class="labs-card" type="button" id="openLabs">
-        <span><span class="t">FLUENT LABS</span><span class="d">Salas de prática com os tutores, de segunda a sexta. Veja os dias e horários.</span></span>
-        <span class="arrow" aria-hidden="true">›</span>
-      </button>
+    <div class="praticas">
+      <div class="panel panel-arenas">
+        <div class="panel-head" id="arenasLabel" hidden>
+          <span class="panel-kicker">Prática em grupo, por nível</span>
+          <h3>Arenas de Conversação</h3>
+        </div>
+        <div class="arenas" id="arenas"></div>
+      </div>
+      <div class="panel panel-labs" id="labsBlock" hidden>
+        <div class="panel-head">
+          <span class="panel-kicker">Exclusivo da Mentoria</span>
+          <h3>Fluent Labs</h3>
+        </div>
+        <img src="img/fluent-labs.svg" alt="">
+        <p>Salas de prática com os tutores, de segunda a sexta. Entre no horário que for melhor para você.</p>
+        <button class="btn" type="button" id="openLabs">Ver dias e horários</button>
+      </div>
     </div>
     <button class="link" type="button" data-go="s-entrada">Voltar e corrigir meus dados</button>
   </section>
@@ -319,7 +350,7 @@ a.slot { text-decoration: none; }
     <div class="screen-head">
       <span class="kicker">Exclusivo da Mentoria</span>
       <h2>Fluent Labs</h2>
-      <p class="muted">Dias e horários disponíveis · horário de Brasília. Clique no horário para entrar na sala.</p>
+      <p class="muted">Dias e horários disponíveis · horário de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>PEGAR LINK</b> para guardar o link.</p>
     </div>
     <div class="slots" id="labsSlots"></div>
     <button class="link" type="button" data-go="s-arenas">Voltar</button>
@@ -632,6 +663,7 @@ $("startForm").addEventListener("submit", async e => {
   btn.disabled = false; btn.textContent = "Iniciar";
   mentorada = !!(res && res.encontrada === true);
   $("labsBlock").hidden = $("arenasLabel").hidden = !mentorada;
+  $("s-arenas").classList.toggle("is-mentorada", mentorada);
   $("arenasTitle").textContent = mentorada ? "Escolha a sua prática" : "Escolha a sua Arena";
   $("arenasSub").textContent = mentorada
     ? "Você é da Mentoria Fluent Mind: escolha uma Arena de Conversação ou o Fluent Labs."
@@ -861,22 +893,61 @@ $("arenaGo").addEventListener("click", () => {
 $("arenaBack").addEventListener("click", fecharArena);
 
 // ---------- Fluent Labs ----------
-CONFIG.fluentLabs.forEach(l => {
-  const a = document.createElement("a");
-  a.className = "slot"; a.href = l.link; a.target = "_blank"; a.rel = "noopener";
-  a.innerHTML = '<span class="hora"></span><span class="when"></span><span class="entrar">Entrar na sala ›</span>';
-  a.querySelector(".hora").textContent = l.hora;
-  a.querySelector(".when").textContent = DIAS[l.dia];
-  $("labsSlots").appendChild(a);
-});
-$("openLabs").addEventListener("click", () => {
-  const hoje = new Date().getDay();
-  [...$("labsSlots").children].forEach((a, i) => {
-    a.classList.toggle("featured", CONFIG.fluentLabs[i].dia === hoje);
-    a.querySelector(".when").textContent = DIAS[CONFIG.fluentLabs[i].dia] + (CONFIG.fluentLabs[i].dia === hoje ? " · Hoje" : "");
-  });
-  show("s-labs");
-});
+// O próximo horário fica em destaque no topo. "ENTRAR NA SALA" só aparece de 5 min antes até 5 min depois
+// do início; fora disso, "PEGAR LINK" copia o link da sala.
+const JANELA = 5 * 60000;
+function proximaLab(l) {
+  const now = new Date(), [h, m] = l.hora.split(":").map(Number);
+  const d = new Date(now);
+  d.setHours(h, m, 0, 0);
+  d.setDate(now.getDate() + (l.dia - now.getDay() + 7) % 7);
+  if (d.getTime() + JANELA < now.getTime()) d.setDate(d.getDate() + 7); // já passou dos 5 min de tolerância
+  return d;
+}
+function copiarLink(link, btn) {
+  const ok = () => { btn.textContent = "Link copiado ✓"; setTimeout(() => { btn.textContent = "PEGAR LINK"; }, 2500); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(link).then(ok, () => window.prompt("Copie o link da sala:", link));
+  else window.prompt("Copie o link da sala:", link);
+}
+function renderLabs() {
+  const box = $("labsSlots"), now = Date.now();
+  box.innerHTML = "";
+  CONFIG.fluentLabs
+    .map(l => ({ l, d: proximaLab(l) }))
+    .sort((x, y) => x.d - y.d)
+    .forEach(({ l, d }, i) => {
+      if (i === 1) {
+        const p = document.createElement("p");
+        p.className = "group-label";
+        p.textContent = "Demais dias e horários";
+        box.appendChild(p);
+      }
+      const aberta = Math.abs(d.getTime() - now) <= JANELA;
+      const row = document.createElement("div");
+      row.className = "slot labs-slot" + (i === 0 ? " featured" : "");
+      row.innerHTML = '<span class="hora"></span><span>' +
+        (i === 0 ? '<span class="tag">' + (aberta ? "Acontecendo agora" : "Próximo horário") + '</span>' : '') +
+        '<span class="when"></span></span>';
+      row.querySelector(".hora").textContent = l.hora;
+      row.querySelector(".when").textContent = whenLabel(d);
+      let btn;
+      if (aberta) {
+        btn = document.createElement("a");
+        btn.className = "lab-btn entrar"; btn.href = l.link; btn.target = "_blank"; btn.rel = "noopener";
+        btn.textContent = "ENTRAR NA SALA";
+      } else {
+        btn = document.createElement("button");
+        btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "PEGAR LINK";
+        btn.addEventListener("click", () => copiarLink(l.link, btn));
+      }
+      btn.setAttribute("aria-label", btn.textContent + ": " + whenLabel(d) + " às " + l.hora);
+      row.appendChild(btn);
+      box.appendChild(row);
+    });
+}
+$("openLabs").addEventListener("click", () => { renderLabs(); show("s-labs"); });
+// Atualiza os botões sozinho enquanto a aluna está na tela (ex.: abre a sala quando chegar a hora)
+setInterval(() => { if (!$("s-labs").hidden && !document.querySelector(".lab-btn.pegar:focus")) renderLabs(); }, 20000);
 
 // ---------- Horários ----------
 function nextOccurrence(a) {
