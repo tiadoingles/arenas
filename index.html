@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Arenas de Conversação · Fluent Mind</title>
+<title>Práticas · Fluent Mind Academy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
@@ -234,6 +234,18 @@ body.modal-open { overflow: hidden; }
   color: var(--accent); font-size: 1.3rem; font-weight: 800; text-decoration: none; transition: background .15s;
 }
 .material:hover { background: rgba(46, 230, 194, .18); }
+.section-title { font-size: 1.1rem; color: var(--fg); margin-bottom: -12px; }
+.labs-card {
+  display: flex; align-items: center; gap: 16px; width: 100%; font: inherit; text-align: left; color: var(--fg); cursor: pointer;
+  background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--radius); padding: 22px 22px;
+  transition: background .15s;
+}
+.labs-card:hover { background: rgba(46, 230, 194, .18); }
+.labs-card .t { display: block; font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+.labs-card .d { display: block; color: var(--text); font-size: .95rem; }
+.labs-card .arrow { margin-left: auto; font-size: 1.5rem; color: var(--accent); }
+a.slot { text-decoration: none; }
+.slot .entrar { margin-left: auto; font-size: .9rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
 .chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; }
 
 /* Popup da Arena: vídeo + checklist */
@@ -256,22 +268,12 @@ body.modal-open { overflow: hidden; }
 <body>
 <div class="page">
 
-  <!-- Arenas (tela inicial) -->
-  <main class="screen" id="s-arenas">
+  <!-- Entrada (tela inicial) -->
+  <main class="screen" id="s-entrada">
     <div class="screen-head">
-      <span class="kicker">Plataforma Fluent Mind</span>
-      <h1>Sistema de agendamentos de <span class="accent">Arenas de Conversação</span></h1>
-      <p class="muted">Escolha a sua Arena para ver as instruções e fazer a sua inscrição.</p>
-    </div>
-    <div class="arenas" id="arenas"></div>
-  </main>
-
-  <!-- Entrada -->
-  <section class="screen" id="s-entrada" hidden>
-    <div class="screen-head">
-      <span class="chip" id="arenaChip"></span>
-      <h2>Seus dados</h2>
-      <p class="muted">Preencha seus dados para escolher o dia e o horário.</p>
+      <span class="kicker">Fluent Mind Academy</span>
+      <h1>Sistema de agendamento de <span class="accent">Práticas Fluent Mind Academy</span></h1>
+      <p class="muted">Preencha seus dados para começar.</p>
     </div>
     <form class="form" id="startForm" novalidate>
       <div class="field">
@@ -288,17 +290,46 @@ body.modal-open { overflow: hidden; }
       </div>
       <div class="hp" aria-hidden="true"><label for="fSite">Site</label><input id="fSite" name="site" type="text" tabindex="-1" autocomplete="off"></div>
       <p class="form-error" id="formError" role="alert"></p>
-      <button class="btn" type="submit">Iniciar</button>
+      <button class="btn" type="submit" id="startBtn">Iniciar</button>
       <p class="muted small">Seus dados ficam só com a equipe da Tia do Inglês.</p>
     </form>
-    <button class="link" type="button" data-go="s-arenas">Trocar de Arena</button>
+  </main>
+
+  <!-- Arenas (e Fluent Labs, só para mentoradas) -->
+  <section class="screen" id="s-arenas" hidden>
+    <div class="progress"></div>
+    <div class="screen-head">
+      <h2>Olá, <span class="helloName"></span>! <span id="arenasTitle">Escolha a sua Arena</span></h2>
+      <p class="muted" id="arenasSub">Escolha a sua Arena para ver as instruções e fazer a sua inscrição.</p>
+    </div>
+    <h3 class="section-title" id="arenasLabel" hidden>Arenas de Conversação</h3>
+    <div class="arenas" id="arenas"></div>
+    <div id="labsBlock" hidden>
+      <h3 class="section-title">Fluent Labs</h3>
+      <button class="labs-card" type="button" id="openLabs">
+        <span><span class="t">FLUENT LABS</span><span class="d">Salas de prática com os tutores, de segunda a sexta. Veja os dias e horários.</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </button>
+    </div>
+    <button class="link" type="button" data-go="s-entrada">Voltar e corrigir meus dados</button>
+  </section>
+
+  <!-- Fluent Labs -->
+  <section class="screen" id="s-labs" hidden>
+    <div class="screen-head">
+      <span class="kicker">Exclusivo da Mentoria</span>
+      <h2>Fluent Labs</h2>
+      <p class="muted">Dias e horários disponíveis · horário de Brasília. Clique no horário para entrar na sala.</p>
+    </div>
+    <div class="slots" id="labsSlots"></div>
+    <button class="link" type="button" data-go="s-arenas">Voltar</button>
   </section>
 
   <!-- Perfil -->
   <section class="screen" id="s-perfil" hidden>
-    <div class="progress"><span>Passo 1 de 3</span><div class="bar"><span style="width:33%"></span></div></div>
+    <div class="progress"></div>
     <div class="screen-head">
-      <h2>Olá, <span id="helloName"></span>! Qual é o seu curso?</h2>
+      <h2>Qual é o seu curso?</h2>
       <p class="muted">Assim a gente mostra a regra de frequência certa para você.</p>
     </div>
     <div class="options">
@@ -317,7 +348,7 @@ body.modal-open { overflow: hidden; }
 
   <!-- Horário -->
   <section class="screen" id="s-horario" hidden>
-    <div class="progress"><span>Passo 2 de 3</span><div class="bar"><span style="width:66%"></span></div></div>
+    <div class="progress"></div>
     <div class="screen-head">
       <h2>Escolha o dia e o horário</h2>
       <p class="muted" id="nivelLabel"></p>
@@ -328,7 +359,7 @@ body.modal-open { overflow: hidden; }
 
   <!-- Antes e durante -->
   <section class="screen" id="s-antes" hidden>
-    <div class="progress"><span>Passo 3 de 3</span><div class="bar"><span style="width:100%"></span></div></div>
+    <div class="progress"></div>
     <div class="screen-head">
       <h2>Confirme a sua escolha</h2>
     </div>
@@ -485,6 +516,18 @@ const CONFIG = {
   whatsapp: "5515991862754", // só números, com DDI 55 e DDD. Vazio = botão escondido
   cadastroUrl: "https://script.google.com/macros/s/AKfycbxqh_dIhv6T05QD8QBigK-GOZpLosBbSVpEJjnZbkmw2zctPCCDiQo-HOOB0zooQGDt/exec", // grava na planilha "Lista Pré-Arena" e confere a Mentoria
   zoom: "https://us02web.zoom.us/meeting/register/",
+  // Fluent Labs (só para quem está na lista da Mentoria). dia: 1 = segunda ... 5 = sexta
+  fluentLabs: [
+    { dia: 1, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 1, hora: "16:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 2, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 3, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 3, hora: "19:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 4, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 4, hora: "20:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 5, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
+    { dia: 5, hora: "14:00", link: "https://us02web.zoom.us/j/6722460988" }
+  ],
   // Pastas do Drive com o material (aparecem no Parabéns, depois do Prosseguir)
   materialRecemChegados: "https://drive.google.com/drive/folders/1LNnWmxeio2ZGQxVwAiwTYegEtakL4UrL?usp=share_link",
   materialDemais: "https://drive.google.com/drive/folders/1GZyU7_hq8Yx4jI4r0-aVzOULRtUByyni?usp=share_link",
@@ -536,10 +579,18 @@ let aluna = null;     // { nome, email, whatsapp, site }
 let selected = null;  // nível
 
 // ---------- Navegação entre telas ----------
-const TELAS = ["s-arenas", "s-entrada", "s-perfil", "s-horario", "s-antes", "s-fim"];
+const TELAS = ["s-entrada", "s-arenas", "s-labs", "s-perfil", "s-horario", "s-antes", "s-fim"];
+let mentorada = false; // e-mail encontrado na lista da Mentoria: pula a escolha de curso e vê o Fluent Labs
 function show(id) {
   TELAS.forEach(t => { $(t).hidden = t !== id; });
   document.querySelector(".page").classList.toggle("wide", id === "s-arenas");
+  // Passos: mentorada = Arena → horário → confirmação; demais = Arena → curso → horário → confirmação
+  const passos = mentorada ? ["s-arenas", "s-horario", "s-antes"] : ["s-arenas", "s-perfil", "s-horario", "s-antes"];
+  const prog = $(id).querySelector(".progress"), i = passos.indexOf(id);
+  if (prog && i > -1) {
+    prog.innerHTML = '<span>Passo ' + (i + 1) + ' de ' + passos.length + '</span><div class="bar"><span></span></div>';
+    prog.querySelector(".bar span").style.width = Math.round((i + 1) / passos.length * 100) + "%";
+  }
   window.scrollTo(0, 0);
 }
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
@@ -561,7 +612,7 @@ $("fWhats").addEventListener("input", e => {
   e.target.value = v;
 });
 
-$("startForm").addEventListener("submit", e => {
+$("startForm").addEventListener("submit", async e => {
   e.preventDefault();
   const nome = $("fNome").value.trim().replace(/\s+/g, " ");
   const email = $("fEmail").value.trim().toLowerCase();
@@ -573,8 +624,19 @@ $("startForm").addEventListener("submit", e => {
   if (whatsapp.length < 10) { err.textContent = "Digite o WhatsApp com DDD."; $("fWhats").focus(); return; }
   aluna = { nome, email, whatsapp, site: $("fSite").value };
   salvar({ nome, email, whatsapp: $("fWhats").value });
-  $("helloName").textContent = nome.split(" ")[0];
-  show("s-perfil");
+  document.querySelectorAll(".helloName").forEach(el => { el.textContent = nome.split(" ")[0]; });
+  // Confere o e-mail na lista da Mentoria (se achar, a planilha grava como "Mentoria")
+  const btn = $("startBtn");
+  btn.disabled = true; btn.textContent = "Conferindo seus dados…";
+  const res = await enviar({ tipo: "mentoria" });
+  btn.disabled = false; btn.textContent = "Iniciar";
+  mentorada = !!(res && res.encontrada === true);
+  $("labsBlock").hidden = $("arenasLabel").hidden = !mentorada;
+  $("arenasTitle").textContent = mentorada ? "Escolha a sua prática" : "Escolha a sua Arena";
+  $("arenasSub").textContent = mentorada
+    ? "Você é da Mentoria Fluent Mind: escolha uma Arena de Conversação ou o Fluent Labs."
+    : "Escolha a sua Arena para ver as instruções e fazer a sua inscrição.";
+  show("s-arenas");
 });
 
 // ---------- Perfil (Mentoria x outros cursos) ----------
@@ -792,12 +854,29 @@ $("arenaGo").addEventListener("click", () => {
     return;
   }
   selected = arenaAberta;
-  $("arenaChip").innerHTML = '<span class="dot ' + CONFIG.niveis[selected].cls + '"></span>';
-  $("arenaChip").append("Arena " + CONFIG.niveis[selected].nome);
   fecharArena();
-  show("s-entrada");
+  if (mentorada) seguirParaNivel(); // já é da Mentoria: vai direto aos horários
+  else show("s-perfil");
 });
 $("arenaBack").addEventListener("click", fecharArena);
+
+// ---------- Fluent Labs ----------
+CONFIG.fluentLabs.forEach(l => {
+  const a = document.createElement("a");
+  a.className = "slot"; a.href = l.link; a.target = "_blank"; a.rel = "noopener";
+  a.innerHTML = '<span class="hora"></span><span class="when"></span><span class="entrar">Entrar na sala ›</span>';
+  a.querySelector(".hora").textContent = l.hora;
+  a.querySelector(".when").textContent = DIAS[l.dia];
+  $("labsSlots").appendChild(a);
+});
+$("openLabs").addEventListener("click", () => {
+  const hoje = new Date().getDay();
+  [...$("labsSlots").children].forEach((a, i) => {
+    a.classList.toggle("featured", CONFIG.fluentLabs[i].dia === hoje);
+    a.querySelector(".when").textContent = DIAS[CONFIG.fluentLabs[i].dia] + (CONFIG.fluentLabs[i].dia === hoje ? " · Hoje" : "");
+  });
+  show("s-labs");
+});
 
 // ---------- Horários ----------
 function nextOccurrence(a) {
@@ -876,7 +955,7 @@ document.addEventListener("keydown", e => {
 
 if (CONFIG.whatsapp) { $("wa").href = "https://wa.me/" + CONFIG.whatsapp; $("wa").hidden = false; }
 $("foot").hidden = false;
-show("s-arenas");
+show("s-entrada");
 </script>
 </body>
 </html>
