@@ -56,6 +56,10 @@ a { color: var(--accent); }
 
 .page { max-width: 560px; margin: 0 auto; }
 .screen { padding-top: 56px; display: flex; flex-direction: column; gap: 28px; }
+/* Dentro de iframe (página incorporada na Cademí): menos respiro no topo e no fim */
+body.embed { padding-bottom: 72px; }
+.embed .screen { padding-top: 20px; }
+.toast-link { display: block; margin-top: 6px; font-weight: 700; word-break: break-all; user-select: all; -webkit-user-select: all; }
 .screen-head { display: flex; flex-direction: column; gap: 10px; }
 .kicker { font-size: .9rem; font-weight: 700; color: var(--accent); }
 
@@ -360,6 +364,7 @@ body.modal-open { overflow: hidden; }
 </style>
 </head>
 <body>
+<script>try { if (window.self !== window.top) document.body.classList.add("embed"); } catch (e) { document.body.classList.add("embed"); }</script>
 <div class="page">
 
   <!-- Entrada (tela inicial) -->
@@ -1060,17 +1065,34 @@ function proximaLab(l) {
 }
 // Copia o link da sala e mostra por 3 s: "SALVE EM UM LOCAL SEGURO"
 let toastTimer = null;
-function avisar(msg) {
+function avisar(msg, extra, ms) {
   const t = $("toast");
-  t.textContent = msg; t.hidden = false;
+  t.textContent = msg;
+  if (extra) { const e = document.createElement("span"); e.className = "toast-link"; e.textContent = extra; t.appendChild(e); }
+  t.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.hidden = true; }, 3000);
+  toastTimer = setTimeout(() => { t.hidden = true; }, ms || 3000);
 }
 const AVISO_LINK_LABS = "Salve esse link em local seguro para entrar no horário";
-function copiarComAviso(link, msg) {
-  const ok = () => avisar(msg || "SALVE EM UM LOCAL SEGURO");
-  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(link).then(ok, () => { window.prompt("Copie o link da sala:", link); ok(); });
-  else { window.prompt("Copie o link da sala:", link); ok(); }
+// Dentro de iframe (ex.: Cademí) a cópia automática costuma ser bloqueada e window.prompt também.
+// Tenta: 1) Clipboard API  2) execCommand("copy")  3) mostra o link no próprio aviso para copiar à mão.
+function copiaAntiga(texto) {
+  const ta = document.createElement("textarea");
+  ta.value = texto; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, texto.length);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove();
+  return ok;
+}
+async function copiarTexto(texto) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(texto); return true; } } catch (e) { /* bloqueado no iframe */ }
+  return copiaAntiga(texto);
+}
+async function copiarComAviso(link, msg) {
+  const aviso = msg || "SALVE EM UM LOCAL SEGURO";
+  if (await copiarTexto(link)) avisar(aviso);
+  else avisar(aviso + ". Copie o link:", link, 8000); // não deu para copiar sozinho: mostra o link por mais tempo
 }
 
 function renderLabs() {
