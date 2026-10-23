@@ -801,7 +801,7 @@ $("startForm").addEventListener("submit", async e => {
   if (nome.length < 2) { err.textContent = "Digite seu nome."; $("fNome").focus(); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = "Confira o seu e-mail."; $("fEmail").focus(); return; }
   if (whatsapp.length < 10) { err.textContent = "Digite o WhatsApp com DDD."; $("fWhats").focus(); return; }
-  aluna = { nome, email, whatsapp, site: $("fSite").value };
+  aluna = { nome, email, whatsapp, site: $("fSite").value, sessao: novaSessao(), acesso: ACESSO, dispositivo: DISPOSITIVO };
   salvar({ nome, email, whatsapp: $("fWhats").value });
   document.querySelectorAll(".helloName").forEach(el => { el.textContent = nome.split(" ")[0]; });
   // Confere o e-mail na lista da Mentoria (se achar, a planilha grava como "Mentoria")
@@ -820,6 +820,19 @@ $("startForm").addEventListener("submit", async e => {
     : "Escolha a sua Arena para ver as instruções e fazer a sua inscrição.";
   show("s-arenas");
 });
+
+// Para a planilha (aba Inscrições): cada "Iniciar" é uma sessão; de onde a aluna veio e em qual aparelho.
+function novaSessao() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+const ACESSO = (() => {
+  if (window.self === window.top) return "direto";
+  const ref = document.referrer || "";
+  return /tiadoingles\.com\.br|cademi/i.test(ref) ? "cademi" : "outro-site";
+})();
+const DISPOSITIVO = /iPad|Tablet/i.test(navigator.userAgent) ? "tablet" : (/Mobi|Android|iPhone/i.test(navigator.userAgent) ? "celular" : "computador");
+// Copiou o link / clicou em ENTRAR NA SALA (não espera resposta)
+function registrarLink(acao, pratica, d) {
+  if (aluna) enviar({ tipo: "evento", acao, pratica, inicio: d.toISOString() });
+}
 
 // ---------- Perfil (Mentoria x outros cursos) ----------
 async function enviar(extra) {
@@ -890,6 +903,7 @@ $("weekNotYet").addEventListener("click", async () => {
   seguirParaNivel();
 });
 $("weekDone").addEventListener("click", () => {
+  enviar({ tipo: "evento", acao: "parou-semana" });
   $("nextMonday").textContent = proximaSegunda();
   $("weekAsk").hidden = $("weekAskActions").hidden = true;
   $("weekBlocked").hidden = $("weekBlockedActions").hidden = false;
@@ -1090,10 +1104,11 @@ function renderProximas() {
       btn = document.createElement("a");
       btn.className = "lab-btn entrar"; btn.href = it.link; btn.target = "_blank"; btn.rel = "noopener";
       btn.textContent = "ENTRAR NA SALA";
+      btn.addEventListener("click", () => registrarLink("entrou", it.tipo, it.d));
     } else {
       btn = document.createElement("button");
       btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
-      btn.addEventListener("click", () => copiarComAviso(it.link, AVISO_LINK_LABS));
+      btn.addEventListener("click", () => { copiarComAviso(it.link, AVISO_LINK_LABS); registrarLink("copiou", it.tipo, it.d); });
     }
     btn.setAttribute("aria-label", btn.textContent + ": " + it.tipo + " às " + it.hora);
     row.appendChild(btn);
@@ -1176,10 +1191,11 @@ function renderLabs() {
         btn = document.createElement("a");
         btn.className = "lab-btn entrar"; btn.href = l.link; btn.target = "_blank"; btn.rel = "noopener";
         btn.textContent = "ENTRAR NA SALA";
+        btn.addEventListener("click", () => registrarLink("entrou", l.tipo, d));
       } else {
         btn = document.createElement("button");
         btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
-        btn.addEventListener("click", () => copiarComAviso(l.link, AVISO_LINK_LABS));
+        btn.addEventListener("click", () => { copiarComAviso(l.link, AVISO_LINK_LABS); registrarLink("copiou", l.tipo, d); });
       }
       btn.setAttribute("aria-label", btn.textContent + ": " + l.tipo + ", " + whenLabel(d) + " às " + l.hora);
       row.appendChild(btn);
@@ -1284,7 +1300,7 @@ $("goBtn").addEventListener("click", async () => {
   $("fimDia").textContent = whenLabel(d);
   $("fimHora").textContent = a.hora + " (Brasília)";
   $("fimLinkTxt").textContent = link;
-  $("fimCopiar").onclick = () => copiarComAviso(link);
+  $("fimCopiar").onclick = () => { copiarComAviso(link); registrarLink("copiou", "Arena " + nome, d); };
   $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
   show("s-fim");
 });
