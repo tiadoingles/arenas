@@ -419,6 +419,21 @@ body.modal-open { overflow: hidden; }
   </div>
 </div>
 
+<!-- Popup: confirmar Black Friday -->
+<div class="modal" id="blackModal" role="dialog" aria-modal="true" aria-labelledby="blackTitle" hidden>
+  <div class="modal-box alerta">
+    <div class="block">
+      <div class="alert-icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+      <h2 id="blackTitle">VOCÊ CONFIRMA ESSA INFORMAÇÃO?</h2>
+      <p>Você selecionou <b>Sou aluno da Black Friday</b>.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" id="blackYes">Sim, sou aluno da Black Friday</button>
+      <button class="btn btn-outline" type="button" id="blackNo">Não, quero escolher outra opção</button>
+    </div>
+  </div>
+</div>
+
 <!-- Popup: limite de 1x por semana (outros cursos) -->
 <div class="modal" id="weekModal" role="dialog" aria-modal="true" aria-labelledby="weekTitle" hidden>
   <div class="modal-box alerta">
@@ -604,11 +619,17 @@ async function escolherOutros() {
 }
 $("optOutros").addEventListener("click", escolherOutros);
 
-$("optBlack").addEventListener("click", async () => {
-  ocupado(true);
+$("optBlack").addEventListener("click", () => openModal($("blackModal")));
+$("blackYes").addEventListener("click", async () => {
+  $("blackYes").disabled = $("blackNo").disabled = true;
   await enviar({ tipo: "blackfriday" });
-  ocupado(false);
+  $("blackYes").disabled = $("blackNo").disabled = false;
+  closeModal($("blackModal"));
   seguirParaNivel();
+});
+$("blackNo").addEventListener("click", () => {
+  closeModal($("blackModal"));
+  $("optMentoria").focus();
 });
 
 function proximaSegunda() {
@@ -848,7 +869,7 @@ $("openFaq").addEventListener("click", () => openModal($("faqModal")));
 $("closeFaq").addEventListener("click", () => closeModal($("faqModal")));
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
-  ["infoModal", "faqModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
+  ["infoModal", "faqModal", "blackModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
   if (!$("arenaModal").hidden) fecharArena();
 });
 
