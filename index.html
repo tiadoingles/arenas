@@ -59,6 +59,21 @@ a { color: var(--accent); }
 /* Dentro de iframe (página incorporada na Cademí): menos respiro no topo e no fim */
 body.embed { padding-bottom: 72px; }
 .embed .screen { padding-top: 20px; }
+/* Barra fixa no topo: HOME (Cademí) e VOLTAR (tela anterior do sistema) */
+.topbar {
+  position: sticky; top: 0; z-index: 40; display: flex; gap: 8px; align-items: center;
+  margin-inline: -20px; padding: 12px 20px; background: rgba(8, 12, 13, .88);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+}
+.topbar-btn {
+  display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .88rem; font-weight: 800; letter-spacing: .02em;
+  color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
+  cursor: pointer; text-decoration: none;
+}
+.topbar-btn:hover { border-color: var(--accent-line); color: var(--accent); }
+/* Quadro da Cademí que cresce sozinho (iframe-resizer): a barra acompanha a parte visível */
+.resizer .topbar { position: fixed; left: 0; right: 0; top: var(--vis-top, 0px); margin: 0; }
+.resizer body { padding-top: 58px; }
 /* No quadro da Cademí o iframe cresce até o tamanho da página: "fixo" passaria a ser o quadro inteiro.
    --vis-top / --vis-h = parte do quadro visível na tela (vem do iframe-resizer). */
 .embed .modal { inset: auto 0 auto 0; top: var(--vis-top, 0px); height: var(--vis-h, 100vh); }
@@ -367,6 +382,7 @@ body.modal-open { overflow: hidden; }
   window.iFrameResizer = {
     onReady: function () {
       if (!window.parentIFrame) return;
+      document.documentElement.classList.add("resizer");
       window.parentIFrame.getPageInfo(function (i) {
         var topo = Math.max(i.offsetTop, i.scrollTop), fim = Math.min(i.offsetTop + i.iframeHeight, i.scrollTop + i.windowHeight);
         var visTop = topo - i.offsetTop, visH = Math.max(fim - topo, 240);
@@ -380,6 +396,16 @@ body.modal-open { overflow: hidden; }
 </head>
 <body>
 <script>try { if (window.self !== window.top) document.body.classList.add("embed"); } catch (e) { document.body.classList.add("embed"); }</script>
+<nav class="topbar" aria-label="Navegação">
+  <a class="topbar-btn" id="homeBtn" href="https://alunos.tiadoingles.com.br/area/vitrine/home" target="_top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    HOME
+  </a>
+  <button class="topbar-btn" type="button" id="voltarBtn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    VOLTAR
+  </button>
+</nav>
 <div class="page">
 
   <!-- Entrada (tela inicial) -->
@@ -718,7 +744,12 @@ const TELAS = ["s-entrada", "s-arenas", "s-labs", "s-perfil", "s-horario", "s-an
 let mentorada = false; // e-mail encontrado na lista da Mentoria: pula a escolha de curso e vê o Fluent Labs
 let praticas = [];      // Fluent Labs + Sessão Prática: só chegam do Apps Script para quem está na lista
 let escolha = null;     // { a, d } Arena e data escolhidas
-function show(id) {
+// Histórico das telas do sistema para o botão VOLTAR (na primeira tela, VOLTAR leva ao HOME da Cademí)
+const HOME_URL = "https://alunos.tiadoingles.com.br/area/vitrine/home";
+let telaAtual = null, historico = [];
+function show(id, voltando) {
+  if (!voltando && telaAtual && telaAtual !== id) historico.push(telaAtual);
+  telaAtual = id;
   TELAS.forEach(t => { $(t).hidden = t !== id; });
   document.querySelector(".page").classList.toggle("wide", id === "s-arenas");
   // Passos: mentorada = Arena → horário → confirmação; demais = Arena → curso → horário → confirmação
@@ -735,6 +766,12 @@ function show(id) {
   telaJaMostrada = true;
 }
 let telaJaMostrada = false;
+$("voltarBtn").addEventListener("click", () => {
+  const aberto = [...document.querySelectorAll(".modal")].find(m => !m.hidden);
+  if (aberto) { if (aberto.id === "arenaModal") fecharArena(); else closeModal(aberto); return; } // fecha o popup aberto
+  if (historico.length) show(historico.pop(), true);
+  else { try { window.top.location.href = HOME_URL; } catch (e) { window.location.href = HOME_URL; } }
+});
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
 
 function openModal(m) { m.hidden = false; document.body.classList.add("modal-open"); const f = m.querySelector("button"); if (f) f.focus({ preventScroll: true }); }
