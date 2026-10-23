@@ -196,7 +196,27 @@ body.modal-open { overflow: hidden; }
   .arena-body p { font-size: .85rem; line-height: 1.5; }
   .arena .btn { font-size: .9rem; min-height: 44px; padding: 10px 12px; }
 }
-.aviso-video { text-align: center; font-weight: 800; font-size: 1.05rem; color: var(--warn); background: rgba(255, 181, 71, .12); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 10px 14px; margin-bottom: -10px; }
+/* Popup da Arena: sempre do tamanho da tela; rola por dentro se não couber.
+   Em telas largas, vídeo à esquerda e checklist à direita para caber sem rolar. */
+#arenaModal { align-items: center; overflow: hidden; padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+.arena-box {
+  max-width: 560px; margin: 0; padding: 22px 20px; gap: 18px;
+  max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.arena-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.arena-box .checks { gap: 4px; }
+.arena-box .checks label { padding: 8px 10px; line-height: 1.45; font-size: 1rem; }
+.arena-box .checks input { margin-top: 2px; }
+.arena-box .actions .btn { min-height: 50px; }
+@media (min-width: 900px) {
+  .arena-box { max-width: 1020px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; padding: 28px; align-items: start; }
+}
+@media (max-height: 700px) and (min-width: 900px) {
+  .arena-box { padding: 20px; }
+  .arena-box .checks label { padding: 5px 10px; font-size: .95rem; }
+}
+.aviso-video { text-align: center; font-weight: 800; font-size: 1.05rem; color: var(--warn); background: rgba(255, 181, 71, .12); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 10px 14px; margin: 0; }
 .material {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
   padding: 32px 20px; border: 2px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft);
@@ -335,21 +355,25 @@ body.modal-open { overflow: hidden; }
 
 <!-- Popup: instruções da Arena (vídeo + checklist) -->
 <div class="modal" id="arenaModal" role="dialog" aria-modal="true" aria-labelledby="arenaTitle" hidden>
-  <div class="modal-box">
-    <div class="block">
-      <span class="kicker">Instruções da Arena</span>
-      <h2 id="arenaTitle"></h2>
+  <div class="modal-box arena-box" id="arenaBox">
+    <div class="arena-col">
+      <div class="block">
+        <span class="kicker">Instruções da Arena</span>
+        <h2 id="arenaTitle"></h2>
+      </div>
+      <p class="aviso-video">ASSISTA ATÉ O FINAL ANTES DE SEGUIR</p>
+      <div class="video" id="arenaVideo"></div>
     </div>
-    <p class="aviso-video">ASSISTA ATÉ O FINAL ANTES DE SEGUIR</p>
-    <div class="video" id="arenaVideo"></div>
-    <div class="block">
-      <h3>Antes de se inscrever, confirme:</h3>
-      <div class="checks" id="arenaChecks"></div>
-    </div>
-    <p class="form-error" id="arenaError" role="alert"></p>
-    <div class="actions">
-      <button class="btn" type="button" id="arenaGo">FAZER MINHA INSCRIÇÃO</button>
-      <button class="btn btn-outline" type="button" id="arenaBack">Voltar</button>
+    <div class="arena-col">
+      <div class="block">
+        <h3>Antes de se inscrever, confirme:</h3>
+        <div class="checks" id="arenaChecks"></div>
+      </div>
+      <p class="form-error" id="arenaError" role="alert"></p>
+      <div class="actions">
+        <button class="btn" type="button" id="arenaGo">FAZER MINHA INSCRIÇÃO</button>
+        <button class="btn btn-outline" type="button" id="arenaBack">Voltar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -494,7 +518,7 @@ function show(id) {
 }
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
 
-function openModal(m) { m.hidden = false; document.body.classList.add("modal-open"); const f = m.querySelector("button"); if (f) f.focus(); }
+function openModal(m) { m.hidden = false; document.body.classList.add("modal-open"); const f = m.querySelector("button"); if (f) f.focus({ preventScroll: true }); }
 function closeModal(m) { m.hidden = true; if (![...document.querySelectorAll(".modal")].some(x => !x.hidden)) document.body.classList.remove("modal-open"); }
 
 // ---------- Entrada ----------
@@ -670,7 +694,7 @@ function abrirArena(key) {
   });
   $("arenaError").textContent = "";
   openModal($("arenaModal"));
-  $("arenaModal").scrollTop = 0; // começa no aviso e no vídeo, não no botão
+  $("arenaModal").scrollTop = $("arenaBox").scrollTop = 0; // começa no aviso e no vídeo, não no botão
 }
 function fecharArena() {
   $("arenaVideo").innerHTML = ""; // para o vídeo
