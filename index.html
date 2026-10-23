@@ -285,6 +285,45 @@ body.modal-open { overflow: hidden; }
   box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+/* Versão compacta (minimalista) dos cards — vale para todos; sobrescreve as regras acima */
+.arenas { gap: 12px; }
+.arena img { aspect-ratio: 16 / 7; }
+.arena-body { padding: 12px 14px 14px; gap: 4px; }
+.arena-body h3 { font-size: 1.05rem; }
+.arena-body p { font-size: .85rem; line-height: 1.45; }
+.arena .btn { margin-top: 8px; min-height: 40px; padding: 8px 14px; font-size: .92rem; }
+.is-mentorada .praticas { grid-template-columns: 3fr 1fr; gap: 16px; }
+.is-mentorada .panel { padding: 16px; border-radius: 16px; }
+.is-mentorada .panel-arenas .arenas { grid-template-columns: repeat(4, 1fr); }
+.panel-head { margin-bottom: 12px; }
+.panel-head h3 { font-size: 1.15rem; }
+.panel-kicker { font-size: .78rem; }
+.panel-labs { gap: 10px; }
+.panel-labs img { aspect-ratio: 16 / 7; }
+.panel-labs p { font-size: .85rem; line-height: 1.45; }
+.panel-labs .btn { min-height: 40px; padding: 8px 14px; font-size: .92rem; }
+@media (max-width: 1000px) {
+  .is-mentorada .praticas { grid-template-columns: 1fr; }
+  .is-mentorada .panel-arenas .arenas { grid-template-columns: repeat(4, 1fr); }
+  .panel-labs { display: grid; grid-template-columns: 140px 1fr; grid-template-areas: "img head" "img txt" "btn btn"; column-gap: 14px; row-gap: 6px; }
+  .panel-labs .panel-head { grid-area: head; }
+  .panel-labs img { grid-area: img; aspect-ratio: 4 / 3; align-self: center; }
+  .panel-labs p { grid-area: txt; }
+  .panel-labs .btn { grid-area: btn; margin-top: 4px; }
+}
+@media (max-width: 760px) {
+  .arenas, .is-mentorada .panel-arenas .arenas { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .arena img { aspect-ratio: 2 / 1; }
+  .arena-body { padding: 10px 12px 12px; }
+  .arena-body h3 { font-size: 1rem; }
+  .arena .btn { min-height: 38px; font-size: .88rem; }
+}
+@media (max-width: 460px) {
+  .arena-body p { display: none; }
+  .is-mentorada .panel { padding: 12px; }
+  .panel-labs { grid-template-columns: 96px 1fr; }
+  .panel-labs p { display: none; }
+}
 </style>
 </head>
 <body>
@@ -787,7 +826,7 @@ Object.entries(CONFIG.niveis).forEach(([key, n]) => {
   const card = document.createElement("article");
   card.className = "arena " + n.cls;
   card.innerHTML = '<img alt="" loading="lazy"><div class="arena-body"><h3></h3><p></p>' +
-    '<button class="btn" type="button">Ver instruções e agendar</button></div>';
+    '<button class="btn" type="button">Agendar</button></div>';
   card.querySelector("img").src = n.img;
   card.querySelector("h3").textContent = n.nome;
   card.querySelector("p").textContent = n.desc;
