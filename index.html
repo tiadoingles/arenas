@@ -64,7 +64,6 @@ body.embed { padding-bottom: 72px; }
 .embed .modal { inset: auto 0 auto 0; top: var(--vis-top, 0px); height: var(--vis-h, 100vh); }
 .embed .arena-box { max-height: calc(var(--vis-h, 100vh) - 24px); }
 .embed .toast { bottom: auto; top: calc(var(--vis-top, 0px) + var(--vis-h, 100vh) - 150px); }
-.embed .wa { bottom: auto; top: calc(var(--vis-top, 0px) + var(--vis-h, 100vh) - 70px); right: auto; left: 16px; } /* à esquerda: o chat da Cademí fica à direita */
 .toast-link { display: block; margin-top: 6px; font-weight: 700; word-break: break-all; user-select: all; -webkit-user-select: all; }
 .screen-head { display: flex; flex-direction: column; gap: 10px; }
 .kicker { font-size: .9rem; font-weight: 700; color: var(--accent); }
@@ -320,13 +319,6 @@ body.modal-open { overflow: hidden; }
 .checks label.falta { border-color: rgba(255, 138, 150, .6); background: rgba(255, 138, 150, .08); }
 .checks input:checked + span { color: var(--fg); text-decoration: none; }
 
-/* WhatsApp */
-.wa {
-  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 40;
-  display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 999px;
-  background: #1f9d55; color: #ffffff; font-weight: 700; font-size: .95rem; text-decoration: none;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
-}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 /* Versão compacta (minimalista) dos cards — vale para todos; sobrescreve as regras acima */
 .arenas { gap: 12px; }
@@ -653,15 +645,10 @@ body.modal-open { overflow: hidden; }
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<a class="wa" id="wa" href="#" target="_blank" rel="noopener" hidden>
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>
-  Suporte
-</a>
 
 <script>
-// ===== CONFIGURAÇÃO: edite aqui horários, links e WhatsApp =====
+// ===== CONFIGURAÇÃO: edite aqui horários e links =====
 const CONFIG = {
-  whatsapp: "5515991862754", // só números, com DDI 55 e DDD. Vazio = botão escondido
   cadastroUrl: "https://script.google.com/macros/s/AKfycbxqh_dIhv6T05QD8QBigK-GOZpLosBbSVpEJjnZbkmw2zctPCCDiQo-HOOB0zooQGDt/exec", // grava na planilha "Lista Pré-Arena" e confere a Mentoria
   // Feriados nacionais: todas as atividades são canceladas e aparece um aviso em cima do horário.
   // (A mesma lista está no Apps Script, em FERIADOS.) Carnaval e Corpus Christi não são feriados nacionais.
@@ -1276,7 +1263,6 @@ document.addEventListener("keydown", e => {
   if (!$("arenaModal").hidden) fecharArena();
 });
 
-if (CONFIG.whatsapp) { $("wa").href = "https://wa.me/" + CONFIG.whatsapp; $("wa").hidden = false; }
 $("foot").hidden = false;
 show("s-entrada");
 </script>
