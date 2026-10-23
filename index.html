@@ -174,9 +174,36 @@ details p { padding-bottom: 14px; color: var(--muted); }
 body.modal-open { overflow: hidden; }
 .modal-box.alerta { border-color: rgba(255, 181, 71, .55); }
 .alert-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 181, 71, .14); color: var(--warn); }
-.checks .destaque { margin-top: 6px; padding: 14px 16px; border: 1px solid var(--accent-line); border-radius: var(--radius); background: var(--accent-soft); }
-.checks .destaque span { color: var(--fg); font-size: 1.15rem; font-weight: 800; line-height: 1.4; }
-.checks .destaque input { width: 24px; height: 24px; margin-top: 2px; }
+
+/* Tela inicial: 4 Arenas */
+.page.wide { max-width: 1080px; }
+.arenas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.arena {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: var(--radius);
+  transition: border-color .15s, transform .15s;
+}
+.arena:hover { border-color: var(--c); }
+.arena img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.arena-body { display: flex; flex-direction: column; gap: 6px; padding: 18px 18px 20px; flex: 1; }
+.arena-body h3 { font-size: 1.25rem; color: var(--c); }
+.arena-body p { color: var(--muted); font-size: .95rem; flex: 1; }
+.arena .btn { margin-top: 10px; min-height: 50px; background: var(--c); }
+@media (max-width: 760px) {
+  .arenas { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .arena-body { padding: 14px 12px 14px; }
+  .arena-body h3 { font-size: 1.05rem; }
+  .arena-body p { font-size: .85rem; line-height: 1.5; }
+  .arena .btn { font-size: .9rem; min-height: 44px; padding: 10px 12px; }
+}
+.chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; }
+
+/* Popup da Arena: vídeo + checklist */
+.video { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; background: #000; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.checks label { padding: 10px 12px; border: 1px solid transparent; border-radius: 10px; color: var(--fg); }
+.checks label.falta { border-color: rgba(255, 138, 150, .6); background: rgba(255, 138, 150, .08); }
+.checks input:checked + span { color: var(--fg); text-decoration: none; }
 
 /* WhatsApp */
 .wa {
@@ -191,12 +218,22 @@ body.modal-open { overflow: hidden; }
 <body>
 <div class="page">
 
-  <!-- Entrada -->
-  <main class="screen" id="s-entrada">
+  <!-- Arenas (tela inicial) -->
+  <main class="screen" id="s-arenas">
     <div class="screen-head">
       <span class="kicker">Plataforma Fluent Mind</span>
       <h1>Sistema de agendamentos de <span class="accent">Arenas de Conversação</span></h1>
-      <p class="muted">Preencha seus dados para começar.</p>
+      <p class="muted">Escolha a sua Arena para ver as instruções e fazer a sua inscrição.</p>
+    </div>
+    <div class="arenas" id="arenas"></div>
+  </main>
+
+  <!-- Entrada -->
+  <section class="screen" id="s-entrada" hidden>
+    <div class="screen-head">
+      <span class="chip" id="arenaChip"></span>
+      <h2>Seus dados</h2>
+      <p class="muted">Preencha seus dados para escolher o dia e o horário.</p>
     </div>
     <form class="form" id="startForm" novalidate>
       <div class="field">
@@ -216,11 +253,12 @@ body.modal-open { overflow: hidden; }
       <button class="btn" type="submit">Iniciar</button>
       <p class="muted small">Seus dados ficam só com a equipe da Tia do Inglês.</p>
     </form>
-  </main>
+    <button class="link" type="button" data-go="s-arenas">Trocar de Arena</button>
+  </section>
 
   <!-- Perfil -->
   <section class="screen" id="s-perfil" hidden>
-    <div class="progress"><span>Passo 1 de 4</span><div class="bar"><span style="width:25%"></span></div></div>
+    <div class="progress"><span>Passo 1 de 3</span><div class="bar"><span style="width:33%"></span></div></div>
     <div class="screen-head">
       <h2>Olá, <span id="helloName"></span>! Qual é o seu curso?</h2>
       <p class="muted">Assim a gente mostra a regra de frequência certa para você.</p>
@@ -236,46 +274,26 @@ body.modal-open { overflow: hidden; }
     <button class="link" type="button" data-go="s-entrada">Voltar e corrigir meus dados</button>
   </section>
 
-  <!-- Nível -->
-  <section class="screen" id="s-nivel" hidden>
-    <div class="progress"><span>Passo 2 de 4</span><div class="bar"><span style="width:50%"></span></div></div>
-    <div class="screen-head">
-      <h2>Escolha o seu nível</h2>
-    </div>
-    <div class="options" id="levels"></div>
-  </section>
-
   <!-- Horário -->
   <section class="screen" id="s-horario" hidden>
-    <div class="progress"><span>Passo 3 de 4</span><div class="bar"><span style="width:75%"></span></div></div>
+    <div class="progress"><span>Passo 2 de 3</span><div class="bar"><span style="width:66%"></span></div></div>
     <div class="screen-head">
       <h2>Escolha o dia e o horário</h2>
       <p class="muted" id="nivelLabel"></p>
     </div>
     <div class="slots" id="slots"></div>
-    <button class="link" type="button" data-go="s-nivel">Trocar nível</button>
+    <button class="link" type="button" data-go="s-arenas">Trocar de Arena</button>
   </section>
 
   <!-- Antes e durante -->
   <section class="screen" id="s-antes" hidden>
-    <div class="progress"><span>Passo 4 de 4</span><div class="bar"><span style="width:100%"></span></div></div>
+    <div class="progress"><span>Passo 3 de 3</span><div class="bar"><span style="width:100%"></span></div></div>
     <div class="screen-head">
-      <h2>Antes e durante a Arena</h2>
+      <h2>Confirme a sua escolha</h2>
     </div>
     <div class="summary">
       <span class="muted small">Você escolheu</span>
       <strong id="chosenText"></strong>
-    </div>
-    <div class="block">
-      <h3>Checklist</h3>
-      <div class="checks">
-        <label for="c1"><input type="checkbox" id="c1"><span>Vou salvar o link que chega no e-mail de confirmação</span></label>
-        <label for="c2"><input type="checkbox" id="c2"><span>Vou entrar 5 minutos antes</span></label>
-        <label for="c3"><input type="checkbox" id="c3"><span>Fone e microfone testados</span></label>
-        <label for="c4"><input type="checkbox" id="c4"><span>Câmera funcionando</span></label>
-        <label for="c5"><input type="checkbox" id="c5"><span>Lugar tranquilo e boa internet</span></label>
-        <label for="c6" class="destaque"><input type="checkbox" id="c6"><span>VOU FAZER O DOWNLOAD DO MATERIAL NA PLATAFORMA ANTES DE PARTICIPAR</span></label>
-      </div>
     </div>
     <div class="actions">
       <a class="btn" id="goBtn" href="#" target="_blank" rel="noopener">Prosseguir!</a>
@@ -288,6 +306,26 @@ body.modal-open { overflow: hidden; }
     <button class="link" type="button" id="openInfo">Como funciona</button>
     <button class="link" type="button" id="openFaq">Dúvidas frequentes</button>
   </footer>
+</div>
+
+<!-- Popup: instruções da Arena (vídeo + checklist) -->
+<div class="modal" id="arenaModal" role="dialog" aria-modal="true" aria-labelledby="arenaTitle" hidden>
+  <div class="modal-box">
+    <div class="block">
+      <span class="kicker">Instruções da Arena</span>
+      <h2 id="arenaTitle"></h2>
+    </div>
+    <div class="video" id="arenaVideo"></div>
+    <div class="block">
+      <h3>Antes de se inscrever, confirme:</h3>
+      <div class="checks" id="arenaChecks"></div>
+    </div>
+    <p class="form-error" id="arenaError" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="button" id="arenaGo">FAZER MINHA INSCRIÇÃO</button>
+      <button class="btn btn-outline" type="button" id="arenaBack">Voltar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Popup: como funciona -->
@@ -371,12 +409,30 @@ const CONFIG = {
   whatsapp: "5515991862754", // só números, com DDI 55 e DDD. Vazio = botão escondido
   cadastroUrl: "https://script.google.com/macros/s/AKfycbxqh_dIhv6T05QD8QBigK-GOZpLosBbSVpEJjnZbkmw2zctPCCDiQo-HOOB0zooQGDt/exec", // grava na planilha "Lista Pré-Arena" e confere a Mentoria
   zoom: "https://us02web.zoom.us/meeting/register/",
+  // Por nível: imagem do card, descrição, vídeo do YouTube (só o ID) e checklist obrigatório do popup
   niveis: {
-    rc: { nome: "Recém Chegados", cls: "lv-rc", obs: "Essa arena é para quem é zerado no inglês ou está muito básico" },
-    ba: { nome: "Básicos",        cls: "lv-ba" },
-    in: { nome: "Intermediários", cls: "lv-in" },
-    av: { nome: "Avançados",      cls: "lv-av" }
+    rc: { nome: "Recém Chegados", cls: "lv-rc", img: "img/recem-chegados.svg", video: "Ac6XO0w7S1I",
+          desc: "Iniciantes: para quem é zerado no inglês ou está muito básico.",
+          checklist: [
+            "Estou ciente que o limite de atraso é de 5 minutos",
+            "Estou ciente de que devo baixar o Material antes de me inscrever",
+            "Estou ciente que a sala abre com 5 min de antecedência",
+            "Assisti o vídeo de instruções até o final"
+          ] },
+    ba: { nome: "Básicos",        cls: "lv-ba", img: "img/basicos.svg", video: "Ac6XO0w7S1I",
+          desc: "Para quem já forma frases simples e quer ganhar confiança.", checklist: "padrao" },
+    in: { nome: "Intermediários", cls: "lv-in", img: "img/intermediarios.svg", video: "Ac6XO0w7S1I",
+          desc: "Para quem já conversa e quer mais fluidez e vocabulário.", checklist: "padrao" },
+    av: { nome: "Avançados",      cls: "lv-av", img: "img/avancados.svg", video: "Ac6XO0w7S1I",
+          desc: "Para quem conversa com facilidade e quer refinar a fala.", checklist: "padrao" }
   },
+  checklistPadrao: [
+    "Estou ciente que o limite de atraso é de 5 minutos",
+    "Estou ciente de que devo baixar o Material antes de me inscrever",
+    "Estou ciente de que devo me preparar com o conteúdo do Material antes da Arena",
+    "Estou ciente que a sala abre com 5 min de antecedência",
+    "Assisti o vídeo de instruções até o final"
+  ],
   // dia: 1 = segunda ... 5 = sexta
   arenas: [
     { dia: 1, hora: "17h", nivel: "av", id: "cl7XYDoLTl69JFkQ76z3pg" },
@@ -401,11 +457,10 @@ let aluna = null;     // { nome, email, whatsapp, site }
 let selected = null;  // nível
 
 // ---------- Navegação entre telas ----------
-const TELAS = ["s-entrada", "s-perfil", "s-nivel", "s-horario", "s-antes"];
+const TELAS = ["s-arenas", "s-entrada", "s-perfil", "s-horario", "s-antes"];
 function show(id) {
   TELAS.forEach(t => { $(t).hidden = t !== id; });
-  $("foot").hidden = id === "s-entrada";
-  if (CONFIG.whatsapp) $("wa").hidden = id === "s-entrada";
+  document.querySelector(".page").classList.toggle("wide", id === "s-arenas");
   window.scrollTo(0, 0);
 }
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
@@ -464,7 +519,8 @@ function ocupado(sim) {
 }
 
 function seguirParaNivel() {
-  show("s-nivel");
+  renderSlots();
+  show("s-horario");
   openModal($("infoModal"));
 }
 
@@ -540,17 +596,64 @@ $("confirmOther").addEventListener("click", () => {
   escolherOutros();
 });
 
-// ---------- Nível ----------
+// ---------- Arenas (tela inicial) ----------
 Object.entries(CONFIG.niveis).forEach(([key, n]) => {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "option " + n.cls;
-  b.innerHTML = '<span class="dot"></span><span><span class="t"></span><span class="d"></span></span><span class="arrow" aria-hidden="true">›</span>';
-  b.querySelector(".t").textContent = n.nome;
-  if (n.obs) b.querySelector(".d").textContent = n.obs; else b.querySelector(".d").remove();
-  b.addEventListener("click", () => { selected = key; renderSlots(); show("s-horario"); });
-  $("levels").appendChild(b);
+  const card = document.createElement("article");
+  card.className = "arena " + n.cls;
+  card.innerHTML = '<img alt="" loading="lazy"><div class="arena-body"><h3></h3><p></p>' +
+    '<button class="btn" type="button">Ver instruções e agendar</button></div>';
+  card.querySelector("img").src = n.img;
+  card.querySelector("h3").textContent = n.nome;
+  card.querySelector("p").textContent = n.desc;
+  card.querySelector("button").setAttribute("aria-label", "Ver instruções e agendar: " + n.nome);
+  card.querySelector("button").addEventListener("click", () => abrirArena(key));
+  $("arenas").appendChild(card);
 });
+
+let arenaAberta = null;
+function abrirArena(key) {
+  const n = CONFIG.niveis[key];
+  arenaAberta = key;
+  $("arenaTitle").textContent = "Arena " + n.nome;
+  $("arenaVideo").innerHTML = '<iframe title="Vídeo de instruções" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  $("arenaVideo").querySelector("iframe").src = "https://www.youtube-nocookie.com/embed/" + n.video + "?rel=0";
+  const itens = n.checklist === "padrao" ? CONFIG.checklistPadrao : n.checklist;
+  const box = $("arenaChecks");
+  box.innerHTML = "";
+  itens.forEach((txt, i) => {
+    const l = document.createElement("label");
+    l.htmlFor = "ac" + i;
+    l.innerHTML = '<input type="checkbox"><span></span>';
+    l.querySelector("input").id = "ac" + i;
+    l.querySelector("span").textContent = txt;
+    l.querySelector("input").addEventListener("change", e => {
+      if (e.target.checked) l.classList.remove("falta");
+      if (!box.querySelector(".falta")) $("arenaError").textContent = "";
+    });
+    box.appendChild(l);
+  });
+  $("arenaError").textContent = "";
+  openModal($("arenaModal"));
+}
+function fecharArena() {
+  $("arenaVideo").innerHTML = ""; // para o vídeo
+  closeModal($("arenaModal"));
+}
+$("arenaGo").addEventListener("click", () => {
+  const faltando = [...$("arenaChecks").querySelectorAll("label")].filter(l => !l.querySelector("input").checked);
+  faltando.forEach(l => l.classList.add("falta"));
+  if (faltando.length) {
+    $("arenaError").textContent = "É obrigatório marcar todos os itens antes de fazer a sua inscrição.";
+    faltando[0].querySelector("input").focus();
+    return;
+  }
+  selected = arenaAberta;
+  $("arenaChip").innerHTML = '<span class="dot ' + CONFIG.niveis[selected].cls + '"></span>';
+  $("arenaChip").append("Arena " + CONFIG.niveis[selected].nome);
+  fecharArena();
+  show("s-entrada");
+});
+$("arenaBack").addEventListener("click", fecharArena);
 
 // ---------- Horários ----------
 function nextOccurrence(a) {
@@ -617,10 +720,12 @@ $("closeFaq").addEventListener("click", () => closeModal($("faqModal")));
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
   ["infoModal", "faqModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
+  if (!$("arenaModal").hidden) fecharArena();
 });
 
-if (CONFIG.whatsapp) $("wa").href = "https://wa.me/" + CONFIG.whatsapp;
-show("s-entrada");
+if (CONFIG.whatsapp) { $("wa").href = "https://wa.me/" + CONFIG.whatsapp; $("wa").hidden = false; }
+$("foot").hidden = false;
+show("s-arenas");
 </script>
 </body>
 </html>
