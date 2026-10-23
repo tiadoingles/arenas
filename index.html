@@ -227,6 +227,11 @@ body.modal-open { overflow: hidden; }
 .demo-cursor.click .ripple { animation: demo-ripple .4s ease-out; }
 @keyframes demo-click { 50% { transform: scale(.8); } }
 @keyframes demo-ripple { from { opacity: .9; transform: scale(.4); } to { opacity: 0; transform: scale(1.6); } }
+.aviso-feriado { display: flex; gap: 8px; align-items: flex-start; font-size: .9rem; font-weight: 700; color: var(--warn); background: rgba(255, 181, 71, .1); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 8px 12px; margin-bottom: -4px; }
+.slot.cancelado { opacity: .55; cursor: not-allowed; text-decoration: line-through; }
+.slot.cancelado:hover { background: var(--surface); border-color: var(--line); }
+.lab-tipo { display: block; font-size: .8rem; font-weight: 800; color: var(--muted); }
+.lab-tipo.sessao { color: #ffc857; }
 .aviso-video { text-align: center; font-weight: 800; font-size: 1.05rem; color: var(--warn); background: rgba(255, 181, 71, .12); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 10px 14px; margin: 0; }
 .material {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
@@ -388,8 +393,8 @@ body.modal-open { overflow: hidden; }
   <section class="screen" id="s-labs" hidden>
     <div class="screen-head">
       <span class="kicker">Exclusivo da Mentoria</span>
-      <h2>Fluent Labs</h2>
-      <p class="muted">Dias e horários disponíveis · horário de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>PEGAR LINK</b> para guardar o link.</p>
+      <h2>Fluent Labs e Sessões Práticas</h2>
+      <p class="muted">Fluent Labs e Sessões Práticas · horário de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>PEGAR LINK</b> para guardar o link.</p>
     </div>
     <div class="slots" id="labsSlots"></div>
     <button class="link" type="button" data-go="s-arenas">Voltar</button>
@@ -437,9 +442,10 @@ body.modal-open { overflow: hidden; }
       <span class="muted small">Você escolheu</span>
       <strong id="chosenText"></strong>
     </div>
+    <p class="form-error" id="goError" role="alert"></p>
     <div class="actions">
-      <a class="btn" id="goBtn" href="#" target="_blank" rel="noopener">Prosseguir!</a>
-      <p class="muted small" style="text-align:center">Abre a página do Zoom para você preencher seus dados.</p>
+      <button class="btn" type="button" id="goBtn">Confirmar minha inscrição</button>
+      <p class="muted small" style="text-align:center">Você vai receber no seu e-mail o convite com o link da sala.</p>
     </div>
     <button class="link" type="button" data-go="s-horario">Trocar horário</button>
   </section>
@@ -447,15 +453,19 @@ body.modal-open { overflow: hidden; }
   <!-- Parabéns -->
   <section class="screen" id="s-fim" hidden>
     <div class="screen-head">
-      <span class="kicker">Inscrição aberta em outra aba</span>
+      <span class="kicker" id="fimKicker">Inscrição confirmada</span>
       <h1>PARABÉNS!</h1>
+      <p id="fimTexto"></p>
       <p>Lembre-se de fazer o download do seu material e se preparar antes da sua Arena.</p>
     </div>
     <a class="material" id="materialBtn" href="#" target="_blank" rel="noopener">
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
       <span>BAIXAR O MATERIAL AQUI</span>
     </a>
-    <p class="muted small">Não abriu a página de inscrição? <a href="#" id="goAgain" target="_blank" rel="noopener">Clique aqui para abrir de novo</a>.</p>
+    <div class="slot labs-slot" id="fimLink">
+      <span><span class="when">Link da sala</span><span class="muted small" id="fimLinkTxt"></span></span>
+      <button class="lab-btn pegar" type="button" id="fimCopiar">PEGAR LINK</button>
+    </div>
     <button class="link" type="button" data-go="s-arenas">Voltar ao início</button>
   </section>
 
@@ -585,19 +595,17 @@ body.modal-open { overflow: hidden; }
 const CONFIG = {
   whatsapp: "5515991862754", // só números, com DDI 55 e DDD. Vazio = botão escondido
   cadastroUrl: "https://script.google.com/macros/s/AKfycbxqh_dIhv6T05QD8QBigK-GOZpLosBbSVpEJjnZbkmw2zctPCCDiQo-HOOB0zooQGDt/exec", // grava na planilha "Lista Pré-Arena" e confere a Mentoria
-  zoom: "https://us02web.zoom.us/meeting/register/",
-  // Fluent Labs (só para quem está na lista da Mentoria). dia: 1 = segunda ... 5 = sexta
-  fluentLabs: [
-    { dia: 1, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 1, hora: "16:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 2, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 3, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 3, hora: "19:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 4, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 4, hora: "20:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 5, hora: "07:00", link: "https://us02web.zoom.us/j/6722460988" },
-    { dia: 5, hora: "14:00", link: "https://us02web.zoom.us/j/6722460988" }
-  ],
+  // Feriados nacionais: todas as atividades são canceladas e aparece um aviso em cima do horário.
+  // (A mesma lista está no Apps Script, em FERIADOS.) Carnaval e Corpus Christi não são feriados nacionais.
+  feriados: {
+    "2026-11-02": "Finados", "2026-11-15": "Proclamação da República", "2026-11-20": "Dia da Consciência Negra",
+    "2026-12-25": "Natal", "2027-01-01": "Confraternização Universal", "2027-03-26": "Paixão de Cristo",
+    "2027-04-21": "Tiradentes", "2027-05-01": "Dia do Trabalho", "2027-09-07": "Independência do Brasil",
+    "2027-10-12": "Nossa Senhora Aparecida", "2027-11-02": "Finados", "2027-11-15": "Proclamação da República",
+    "2027-11-20": "Dia da Consciência Negra", "2027-12-25": "Natal"
+  },
+  // Os horários e links do Fluent Labs e da Sessão Prática NÃO ficam aqui: vêm do Apps Script,
+  // só para quem está na lista da Mentoria.
   // Pastas do Drive com o material (aparecem no Parabéns, depois do Prosseguir)
   materialRecemChegados: "https://drive.google.com/drive/folders/1LNnWmxeio2ZGQxVwAiwTYegEtakL4UrL?usp=share_link",
   materialDemais: "https://drive.google.com/drive/folders/1GZyU7_hq8Yx4jI4r0-aVzOULRtUByyni?usp=share_link",
@@ -626,18 +634,20 @@ const CONFIG = {
     "Assisti o vídeo de instruções até o final"
   ],
   // dia: 1 = segunda ... 5 = sexta
+  // dia: 1 = segunda ... 5 = sexta. meet = link do Google Meet do evento na agenda dos tutores.
+  // zoom = só para as Arenas que ainda não têm Meet na agenda (inscrição antiga no Zoom).
   arenas: [
-    { dia: 1, hora: "17h", nivel: "av", id: "cl7XYDoLTl69JFkQ76z3pg" },
-    { dia: 1, hora: "18h", nivel: "ba", id: "DoAWDF_zT3u27ZXabT7LbQ" },
-    { dia: 1, hora: "20h", nivel: "in", id: "dyPaL-lMSU2e-8P3gTFBWQ" },
-    { dia: 2, hora: "11h", nivel: "in", id: "lsKW0x7pSH2aEL8763BvPQ" },
-    { dia: 3, hora: "11h", nivel: "ba", id: "70zofEC8QIWoEZsxyOgD-g" },
-    { dia: 3, hora: "18h", nivel: "rc", id: "pfTIZ1SBQMq3PYU1CLl52w" },
-    { dia: 3, hora: "20h", nivel: "in", id: "gmpmoTI6SISi3OtX8EeV9w" },
-    { dia: 4, hora: "11h", nivel: "in", id: "SUEK6evWQs-fxwKccQUbHQ" },
-    { dia: 4, hora: "17h", nivel: "rc", id: "lEIotPLUQ9-q01d16TQ9qQ" },
-    { dia: 4, hora: "19h", nivel: "av", id: "WXU_CIJtTGmcjXgNQfq6Kg" },
-    { dia: 5, hora: "11h", nivel: "ba", id: "20NHPJk6Rv-Df2vntMevlQ" }
+    { dia: 1, hora: "17h", nivel: "av", meet: "https://meet.google.com/dih-qdgf-ejb" },
+    { dia: 1, hora: "18h", nivel: "ba", meet: "https://meet.google.com/qux-rwtm-viv" },
+    { dia: 1, hora: "20h", nivel: "in", meet: "https://meet.google.com/cfg-tfyw-dsx" },
+    { dia: 2, hora: "11h", nivel: "in", meet: "https://meet.google.com/vko-qnwg-fsj" },
+    { dia: 3, hora: "11h", nivel: "ba", meet: "", zoom: "https://us02web.zoom.us/meeting/register/70zofEC8QIWoEZsxyOgD-g" },
+    { dia: 3, hora: "18h", nivel: "rc", meet: "", zoom: "https://us02web.zoom.us/meeting/register/pfTIZ1SBQMq3PYU1CLl52w" },
+    { dia: 3, hora: "20h", nivel: "in", meet: "https://meet.google.com/kcc-ruct-gia" },
+    { dia: 4, hora: "11h", nivel: "in", meet: "https://meet.google.com/mre-wmdb-qds" },
+    { dia: 4, hora: "17h", nivel: "rc", meet: "https://meet.google.com/dnf-ydqi-cri" },
+    { dia: 4, hora: "19h", nivel: "av", meet: "https://meet.google.com/yow-vmfa-ajz" },
+    { dia: 5, hora: "11h", nivel: "ba", meet: "https://meet.google.com/mem-dinm-usd" }
   ]
 };
 // ================================================================
@@ -651,6 +661,8 @@ let selected = null;  // nível
 // ---------- Navegação entre telas ----------
 const TELAS = ["s-entrada", "s-arenas", "s-labs", "s-perfil", "s-horario", "s-antes", "s-fim"];
 let mentorada = false; // e-mail encontrado na lista da Mentoria: pula a escolha de curso e vê o Fluent Labs
+let praticas = [];      // Fluent Labs + Sessão Prática: só chegam do Apps Script para quem está na lista
+let escolha = null;     // { a, d } Arena e data escolhidas
 function show(id) {
   TELAS.forEach(t => { $(t).hidden = t !== id; });
   document.querySelector(".page").classList.toggle("wide", id === "s-arenas");
@@ -701,7 +713,9 @@ $("startForm").addEventListener("submit", async e => {
   const res = await enviar({ tipo: "mentoria" });
   btn.disabled = false; btn.textContent = "Iniciar";
   mentorada = !!(res && res.encontrada === true);
-  $("labsBlock").hidden = $("arenasLabel").hidden = !mentorada;
+  praticas = mentorada && res && Array.isArray(res.praticas) ? res.praticas : [];
+  $("labsBlock").hidden = !praticas.length;
+  $("arenasLabel").hidden = !mentorada;
   $("s-arenas").classList.toggle("is-mentorada", mentorada);
   $("arenasTitle").textContent = mentorada ? "Escolha a sua prática" : "Escolha a sua Arena";
   $("arenasSub").textContent = mentorada
@@ -931,6 +945,16 @@ $("arenaGo").addEventListener("click", () => {
 });
 $("arenaBack").addEventListener("click", fecharArena);
 
+// ---------- Feriados ----------
+function chaveDia(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function feriado(d) { return CONFIG.feriados[chaveDia(d)] || ""; }
+function avisoFeriado(nome, d) {
+  const p = document.createElement("p");
+  p.className = "aviso-feriado";
+  p.textContent = "⚠ Feriado nacional (" + nome + ", " + d.getDate() + " " + MESES[d.getMonth()] + "): todas as atividades deste dia estão canceladas.";
+  return p;
+}
+
 // ---------- Fluent Labs ----------
 // O próximo horário fica em destaque no topo. "ENTRAR NA SALA" só aparece de 5 min antes até 5 min depois
 // do início; fora disso, "PEGAR LINK" copia o link da sala.
@@ -951,24 +975,28 @@ function copiarLink(link, btn) {
 function renderLabs() {
   const box = $("labsSlots"), now = Date.now();
   box.innerHTML = "";
-  CONFIG.fluentLabs
-    .map(l => ({ l, d: proximaLab(l) }))
-    .sort((x, y) => x.d - y.d)
-    .forEach(({ l, d }, i) => {
-      if (i === 1) {
-        const p = document.createElement("p");
-        p.className = "group-label";
-        p.textContent = "Demais dias e horários";
-        box.appendChild(p);
-      }
-      const aberta = Math.abs(d.getTime() - now) <= JANELA;
-      const row = document.createElement("div");
-      row.className = "slot labs-slot" + (i === 0 ? " featured" : "");
-      row.innerHTML = '<span class="hora"></span><span>' +
-        (i === 0 ? '<span class="tag">' + (aberta ? "Acontecendo agora" : "Próximo horário") + '</span>' : '') +
-        '<span class="when"></span></span>';
-      row.querySelector(".hora").textContent = l.hora;
-      row.querySelector(".when").textContent = whenLabel(d);
+  const lista = praticas.map(l => ({ l, d: proximaLab(l) })).sort((x, y) => x.d - y.d);
+  const primeiro = lista.findIndex(x => !feriado(x.d));
+  lista.forEach(({ l, d }, i) => {
+    if (i === 1) {
+      const p = document.createElement("p");
+      p.className = "group-label";
+      p.textContent = "Demais dias e horários";
+      box.appendChild(p);
+    }
+    const fer = feriado(d);
+    if (fer) box.appendChild(avisoFeriado(fer, d));
+    const aberta = !fer && Math.abs(d.getTime() - now) <= JANELA;
+    const row = document.createElement("div");
+    row.className = "slot labs-slot" + (i === primeiro ? " featured" : "") + (fer ? " cancelado" : "");
+    row.innerHTML = '<span class="hora"></span><span>' +
+      (i === primeiro ? '<span class="tag">' + (aberta ? "Acontecendo agora" : "Próximo horário") + '</span>' : '') +
+      '<span class="lab-tipo"></span><span class="when"></span></span>';
+    row.querySelector(".hora").textContent = l.hora;
+    row.querySelector(".lab-tipo").textContent = l.tipo;
+    if (l.tipo !== "Fluent Labs") row.querySelector(".lab-tipo").classList.add("sessao");
+    row.querySelector(".when").textContent = whenLabel(d);
+    if (!fer) {
       let btn;
       if (aberta) {
         btn = document.createElement("a");
@@ -979,10 +1007,11 @@ function renderLabs() {
         btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "PEGAR LINK";
         btn.addEventListener("click", () => copiarLink(l.link, btn));
       }
-      btn.setAttribute("aria-label", btn.textContent + ": " + whenLabel(d) + " às " + l.hora);
+      btn.setAttribute("aria-label", btn.textContent + ": " + l.tipo + ", " + whenLabel(d) + " às " + l.hora);
       row.appendChild(btn);
-      box.appendChild(row);
-    });
+    }
+    box.appendChild(row);
+  });
 }
 $("openLabs").addEventListener("click", () => { renderLabs(); show("s-labs"); });
 // Atualiza os botões sozinho enquanto a aluna está na tela (ex.: abre a sala quando chegar a hora)
@@ -1021,35 +1050,63 @@ function renderSlots() {
     }))
     .sort((x, y) => x.d - y.d)
     .slice(0, 4) // a mais próxima em destaque + as 3 seguintes
-    .forEach(({ a, d }, i) => {
+    .forEach(({ a, d }, i, lista) => {
       if (i === 1) {
         const p = document.createElement("p");
         p.className = "group-label";
         p.textContent = "Próximas datas";
         box.appendChild(p);
       }
+      const fer = feriado(d);
+      const destaque = i === lista.findIndex(x => !feriado(x.d));
+      if (fer) box.appendChild(avisoFeriado(fer, d));
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "slot" + (i === 0 ? " featured" : "");
-      b.innerHTML = '<span class="hora"></span><span>' + (i === 0 ? '<span class="tag">Mais próxima</span>' : '') +
+      b.className = "slot" + (destaque ? " featured" : "") + (fer ? " cancelado" : "");
+      b.innerHTML = '<span class="hora"></span><span>' + (destaque ? '<span class="tag">Mais próxima</span>' : '') +
         '<span class="when"></span></span><span class="arrow" aria-hidden="true">›</span>';
       b.querySelector(".hora").textContent = a.hora;
       b.querySelector(".when").textContent = whenLabel(d);
-      b.setAttribute("aria-label", whenLabel(d) + " às " + a.hora);
-      b.addEventListener("click", () => {
+      b.setAttribute("aria-label", whenLabel(d) + " às " + a.hora + (fer ? " (cancelada: feriado)" : ""));
+      if (fer) b.disabled = true;
+      else b.addEventListener("click", () => {
+        escolha = { a, d };
         $("chosenText").textContent = whenLabel(d) + ", " + a.hora + " · " + n.nome;
-        $("goBtn").href = $("goAgain").href = CONFIG.zoom + a.id;
+        $("goError").textContent = "";
         show("s-antes");
       });
       box.appendChild(b);
     });
 }
 
-// ---------- Parabéns ----------
-// O link do Zoom abre em nova aba (target=_blank); esta aba mostra o Parabéns com o material do nível.
-$("goBtn").addEventListener("click", () => {
+// ---------- Confirmação e Parabéns ----------
+// Adiciona a aluna como participante do evento da Arena na agenda dos tutores (Apps Script);
+// ela recebe o convite com o link do Google Meet. Esta aba mostra o Parabéns com o material e o link.
+$("goBtn").addEventListener("click", async () => {
+  const { a, d } = escolha, btn = $("goBtn");
+  btn.disabled = true; btn.textContent = "Confirmando a sua inscrição…";
+  $("goError").textContent = "";
+  const res = a.meet ? await enviar({ tipo: "inscricao", nivel: selected, inicio: d.toISOString() }) : null;
+  btn.disabled = false; btn.textContent = "Confirmar minha inscrição";
+  if (res && res.feriado) { $("goError").textContent = "Esta data é feriado nacional e a Arena foi cancelada. Escolha outro horário."; return; }
+  if (res && res.lotada) { $("goError").textContent = "Esta Arena já está lotada. Escolha outro horário."; return; }
+  const link = (res && res.link) || a.meet || a.zoom;
+  const nome = CONFIG.niveis[selected].nome, quando = whenLabel(d) + ", " + a.hora;
+  if (res && res.ok && "link" in res) { // "link" só vem do Apps Script novo, que de fato inscreve na agenda
+    $("fimKicker").textContent = "Inscrição confirmada";
+    $("fimTexto").textContent = "Você está inscrita na Arena " + nome + " (" + quando + "). O convite com o link da sala foi enviado para " + aluna.email + ".";
+  } else if (!a.meet) {
+    $("fimKicker").textContent = "Falta um passo";
+    $("fimTexto").textContent = "Para esta Arena (" + nome + ", " + quando + "), a inscrição é feita na página do Zoom: abra o link abaixo e preencha seus dados.";
+  } else {
+    $("fimKicker").textContent = "Escolha registrada";
+    $("fimTexto").textContent = "Arena " + nome + " (" + quando + "). Não conseguimos enviar o convite agora: guarde o link da sala abaixo.";
+  }
+  $("fimLinkTxt").textContent = link;
+  $("fimCopiar").textContent = a.meet ? "PEGAR LINK" : "ABRIR INSCRIÇÃO";
+  $("fimCopiar").onclick = () => a.meet ? copiarLink(link, $("fimCopiar")) : window.open(link, "_blank", "noopener");
   $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
-  setTimeout(() => show("s-fim"), 0);
+  show("s-fim");
 });
 
 // ---------- Popups ----------
