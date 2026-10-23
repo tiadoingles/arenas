@@ -241,7 +241,7 @@ body.modal-open { overflow: hidden; }
 .toast {
   position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
   background: #ffc857; color: #1a1405; font-weight: 800; padding: 14px 22px; border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .5); white-space: nowrap; max-width: calc(100vw - 32px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5); text-align: center; width: max-content; max-width: min(460px, calc(100vw - 32px));
 }
 @media (max-width: 400px) { .detalhes dl { grid-template-columns: 1fr; } .toast { white-space: normal; text-align: center; } }
 .proximas { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; border: 1px solid var(--accent-line); background: var(--accent-soft); }
@@ -426,7 +426,7 @@ body.modal-open { overflow: hidden; }
     <div class="screen-head">
       <span class="kicker">Exclusivo da Mentoria</span>
       <h2>Fluent Labs e Sessões Práticas</h2>
-      <p class="muted">Fluent Labs e Sessões Práticas · horário de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>PEGAR LINK</b> para guardar o link.</p>
+      <p class="muted">Fluent Labs e Sessões Práticas · horário de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>COPIAR LINK</b> e salve o link em local seguro.</p>
     </div>
     <div class="slots" id="labsSlots"></div>
     <button class="link" type="button" data-go="s-arenas">Voltar</button>
@@ -1036,8 +1036,8 @@ function renderProximas() {
       btn.textContent = "ENTRAR NA SALA";
     } else {
       btn = document.createElement("button");
-      btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "PEGAR LINK";
-      btn.addEventListener("click", () => copiarLink(it.link, btn));
+      btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
+      btn.addEventListener("click", () => copiarComAviso(it.link, AVISO_LINK_LABS));
     }
     btn.setAttribute("aria-label", btn.textContent + ": " + it.tipo + " às " + it.hora);
     row.appendChild(btn);
@@ -1048,7 +1048,7 @@ function renderProximas() {
 
 // ---------- Fluent Labs ----------
 // O próximo horário fica em destaque no topo. "ENTRAR NA SALA" só aparece de 5 min antes até 5 min depois
-// do início; fora disso, "PEGAR LINK" copia o link da sala.
+// do início; fora disso, "COPIAR LINK" copia o link da sala e mostra o aviso para salvar.
 const JANELA = 5 * 60000;
 function proximaLab(l) {
   const now = new Date(), [h, m] = l.hora.split(":").map(Number);
@@ -1058,11 +1058,6 @@ function proximaLab(l) {
   if (d.getTime() + JANELA < now.getTime()) d.setDate(d.getDate() + 7); // já passou dos 5 min de tolerância
   return d;
 }
-function copiarLink(link, btn) {
-  const ok = () => { btn.textContent = "Link copiado ✓"; setTimeout(() => { btn.textContent = "PEGAR LINK"; }, 2500); };
-  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(link).then(ok, () => window.prompt("Copie o link da sala:", link));
-  else window.prompt("Copie o link da sala:", link);
-}
 // Copia o link da sala e mostra por 3 s: "SALVE EM UM LOCAL SEGURO"
 let toastTimer = null;
 function avisar(msg) {
@@ -1071,8 +1066,9 @@ function avisar(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.hidden = true; }, 3000);
 }
-function copiarComAviso(link) {
-  const ok = () => avisar("SALVE EM UM LOCAL SEGURO");
+const AVISO_LINK_LABS = "Salve esse link em local seguro para entrar no horário";
+function copiarComAviso(link, msg) {
+  const ok = () => avisar(msg || "SALVE EM UM LOCAL SEGURO");
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(link).then(ok, () => { window.prompt("Copie o link da sala:", link); ok(); });
   else { window.prompt("Copie o link da sala:", link); ok(); }
 }
@@ -1109,8 +1105,8 @@ function renderLabs() {
         btn.textContent = "ENTRAR NA SALA";
       } else {
         btn = document.createElement("button");
-        btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "PEGAR LINK";
-        btn.addEventListener("click", () => copiarLink(l.link, btn));
+        btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
+        btn.addEventListener("click", () => copiarComAviso(l.link, AVISO_LINK_LABS));
       }
       btn.setAttribute("aria-label", btn.textContent + ": " + l.tipo + ", " + whenLabel(d) + " às " + l.hora);
       row.appendChild(btn);
