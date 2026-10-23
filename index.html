@@ -196,6 +196,13 @@ body.modal-open { overflow: hidden; }
   .arena-body p { font-size: .85rem; line-height: 1.5; }
   .arena .btn { font-size: .9rem; min-height: 44px; padding: 10px 12px; }
 }
+.aviso-video { text-align: center; font-weight: 800; font-size: 1.05rem; color: var(--warn); background: rgba(255, 181, 71, .12); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 10px 14px; margin-bottom: -10px; }
+.material {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
+  padding: 32px 20px; border: 2px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft);
+  color: var(--accent); font-size: 1.3rem; font-weight: 800; text-decoration: none; transition: background .15s;
+}
+.material:hover { background: rgba(46, 230, 194, .18); }
 .chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; }
 
 /* Popup da Arena: vídeo + checklist */
@@ -267,6 +274,9 @@ body.modal-open { overflow: hidden; }
       <button class="option" type="button" id="optMentoria">
         <span><span class="t">Sou da Mentoria Fluent Mind</span><span class="d">Pratique quantas vezes quiser</span></span><span class="arrow" aria-hidden="true">›</span>
       </button>
+      <button class="option" type="button" id="optBlack">
+        <span><span class="t">Sou aluno da Black Friday</span><span class="d">Pratique quantas vezes quiser</span></span><span class="arrow" aria-hidden="true">›</span>
+      </button>
       <button class="option" type="button" id="optOutros">
         <span><span class="t">Sou aluno de outros cursos</span><span class="d">Método Tia do Inglês e demais cursos</span></span><span class="arrow" aria-hidden="true">›</span>
       </button>
@@ -302,6 +312,21 @@ body.modal-open { overflow: hidden; }
     <button class="link" type="button" data-go="s-horario">Trocar horário</button>
   </section>
 
+  <!-- Parabéns -->
+  <section class="screen" id="s-fim" hidden>
+    <div class="screen-head">
+      <span class="kicker">Inscrição aberta em outra aba</span>
+      <h1>PARABÉNS!</h1>
+      <p>Lembre-se de fazer o download do seu material e se preparar antes da sua Arena.</p>
+    </div>
+    <a class="material" id="materialBtn" href="#" target="_blank" rel="noopener">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      <span>BAIXAR O MATERIAL AQUI</span>
+    </a>
+    <p class="muted small">Não abriu a página de inscrição? <a href="#" id="goAgain" target="_blank" rel="noopener">Clique aqui para abrir de novo</a>.</p>
+    <button class="link" type="button" data-go="s-arenas">Voltar ao início</button>
+  </section>
+
   <footer class="foot" id="foot" hidden>
     <button class="link" type="button" id="openInfo">Como funciona</button>
     <button class="link" type="button" id="openFaq">Dúvidas frequentes</button>
@@ -315,6 +340,7 @@ body.modal-open { overflow: hidden; }
       <span class="kicker">Instruções da Arena</span>
       <h2 id="arenaTitle"></h2>
     </div>
+    <p class="aviso-video">ASSISTA ATÉ O FINAL ANTES DE SEGUIR</p>
     <div class="video" id="arenaVideo"></div>
     <div class="block">
       <h3>Antes de se inscrever, confirme:</h3>
@@ -388,7 +414,7 @@ body.modal-open { overflow: hidden; }
     <h2 id="faqTitle">Dúvidas frequentes</h2>
     <div>
       <details><summary>O e-mail de confirmação não chegou. E agora?</summary><p>Procure nas pastas Spam, Lixo eletrônico e Promoções. Confira também se digitou o e-mail certo na inscrição. Se não encontrar, fale com o suporte.</p></details>
-      <details><summary>Posso participar mais de uma vez na semana?</summary><p>Alunas da Mentoria podem participar sem limite. Alunas do Método Tia do Inglês podem participar 1 vez por semana.</p></details>
+      <details><summary>Posso participar mais de uma vez na semana?</summary><p>Alunas da Mentoria e da Black Friday podem participar sem limite. Alunas do Método Tia do Inglês podem participar 1 vez por semana.</p></details>
       <details><summary>E se eu me atrasar?</summary><p>Depois de 5 minutos do horário marcado, a entrada não é permitida. Faça uma nova inscrição em outro horário.</p></details>
       <details><summary>Não vou conseguir ir. Preciso avisar?</summary><p>Sim. Avise o suporte para liberar sua vaga e escolha outro horário.</p></details>
       <details><summary>Posso só ficar ouvindo?</summary><p>A Arena é um espaço para falar. Pode começar com respostas curtas, no seu ritmo.</p></details>
@@ -409,6 +435,9 @@ const CONFIG = {
   whatsapp: "5515991862754", // só números, com DDI 55 e DDD. Vazio = botão escondido
   cadastroUrl: "https://script.google.com/macros/s/AKfycbxqh_dIhv6T05QD8QBigK-GOZpLosBbSVpEJjnZbkmw2zctPCCDiQo-HOOB0zooQGDt/exec", // grava na planilha "Lista Pré-Arena" e confere a Mentoria
   zoom: "https://us02web.zoom.us/meeting/register/",
+  // Pastas do Drive com o material (aparecem no Parabéns, depois do Prosseguir)
+  materialRecemChegados: "https://drive.google.com/drive/folders/1LNnWmxeio2ZGQxVwAiwTYegEtakL4UrL?usp=share_link",
+  materialDemais: "https://drive.google.com/drive/folders/1GZyU7_hq8Yx4jI4r0-aVzOULRtUByyni?usp=share_link",
   // Por nível: imagem do card, descrição, vídeo do YouTube (só o ID) e checklist obrigatório do popup
   niveis: {
     rc: { nome: "Recém Chegados", cls: "lv-rc", img: "img/recem-chegados.svg", video: "Ac6XO0w7S1I",
@@ -457,7 +486,7 @@ let aluna = null;     // { nome, email, whatsapp, site }
 let selected = null;  // nível
 
 // ---------- Navegação entre telas ----------
-const TELAS = ["s-arenas", "s-entrada", "s-perfil", "s-horario", "s-antes"];
+const TELAS = ["s-arenas", "s-entrada", "s-perfil", "s-horario", "s-antes", "s-fim"];
 function show(id) {
   TELAS.forEach(t => { $(t).hidden = t !== id; });
   document.querySelector(".page").classList.toggle("wide", id === "s-arenas");
@@ -515,7 +544,7 @@ async function enviar(extra) {
 }
 
 function ocupado(sim) {
-  ["optMentoria", "optOutros"].forEach(id => { $(id).disabled = sim; });
+  ["optMentoria", "optBlack", "optOutros"].forEach(id => { $(id).disabled = sim; });
 }
 
 function seguirParaNivel() {
@@ -540,6 +569,13 @@ async function escolherOutros() {
   }
 }
 $("optOutros").addEventListener("click", escolherOutros);
+
+$("optBlack").addEventListener("click", async () => {
+  ocupado(true);
+  await enviar({ tipo: "blackfriday" });
+  ocupado(false);
+  seguirParaNivel();
+});
 
 function proximaSegunda() {
   const d = new Date();
@@ -634,6 +670,7 @@ function abrirArena(key) {
   });
   $("arenaError").textContent = "";
   openModal($("arenaModal"));
+  $("arenaModal").scrollTop = 0; // começa no aviso e no vídeo, não no botão
 }
 function fecharArena() {
   $("arenaVideo").innerHTML = ""; // para o vídeo
@@ -705,12 +742,19 @@ function renderSlots() {
       b.setAttribute("aria-label", whenLabel(d) + " às " + a.hora);
       b.addEventListener("click", () => {
         $("chosenText").textContent = whenLabel(d) + ", " + a.hora + " · " + n.nome;
-        $("goBtn").href = CONFIG.zoom + a.id;
+        $("goBtn").href = $("goAgain").href = CONFIG.zoom + a.id;
         show("s-antes");
       });
       box.appendChild(b);
     });
 }
+
+// ---------- Parabéns ----------
+// O link do Zoom abre em nova aba (target=_blank); esta aba mostra o Parabéns com o material do nível.
+$("goBtn").addEventListener("click", () => {
+  $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
+  setTimeout(() => show("s-fim"), 0);
+});
 
 // ---------- Popups ----------
 $("nextStep").addEventListener("click", () => closeModal($("infoModal")));
