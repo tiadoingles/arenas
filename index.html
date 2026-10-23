@@ -59,6 +59,12 @@ a { color: var(--accent); }
 /* Dentro de iframe (página incorporada na Cademí): menos respiro no topo e no fim */
 body.embed { padding-bottom: 72px; }
 .embed .screen { padding-top: 20px; }
+/* No quadro da Cademí o iframe cresce até o tamanho da página: "fixo" passaria a ser o quadro inteiro.
+   --vis-top / --vis-h = parte do quadro visível na tela (vem do iframe-resizer). */
+.embed .modal { inset: auto 0 auto 0; top: var(--vis-top, 0px); height: var(--vis-h, 100vh); }
+.embed .arena-box { max-height: calc(var(--vis-h, 100vh) - 24px); }
+.embed .toast { bottom: auto; top: calc(var(--vis-top, 0px) + var(--vis-h, 100vh) - 150px); }
+.embed .wa { bottom: auto; top: calc(var(--vis-top, 0px) + var(--vis-h, 100vh) - 70px); }
 .toast-link { display: block; margin-top: 6px; font-weight: 700; word-break: break-all; user-select: all; -webkit-user-select: all; }
 .screen-head { display: flex; flex-direction: column; gap: 10px; }
 .kicker { font-size: .9rem; font-weight: 700; color: var(--accent); }
@@ -362,6 +368,23 @@ body.modal-open { overflow: hidden; }
   .panel-labs p { display: none; }
 }
 </style>
+<!-- Página incorporada na Cademí: a aula usa iframe-resizer v4.2.11 (quadro começa com altura 0 e
+     espera a página informar a altura). Esta é a parte "filha" da MESMA versão. Fora de iframe não faz nada. -->
+<script>
+  // Área do quadro que está visível na tela da aluna: posiciona popups, avisos e o botão de Suporte.
+  window.iFrameResizer = {
+    onReady: function () {
+      if (!window.parentIFrame) return;
+      window.parentIFrame.getPageInfo(function (i) {
+        var topo = Math.max(i.offsetTop, i.scrollTop), fim = Math.min(i.offsetTop + i.iframeHeight, i.scrollTop + i.windowHeight);
+        var visTop = topo - i.offsetTop, visH = Math.max(fim - topo, 240);
+        document.documentElement.style.setProperty("--vis-top", visTop + "px");
+        document.documentElement.style.setProperty("--vis-h", visH + "px");
+      });
+    }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.2.11/iframeResizer.contentWindow.min.js"></script>
 </head>
 <body>
 <script>try { if (window.self !== window.top) document.body.classList.add("embed"); } catch (e) { document.body.classList.add("embed"); }</script>
@@ -720,7 +743,11 @@ function show(id) {
     prog.querySelector(".bar span").style.width = Math.round((i + 1) / passos.length * 100) + "%";
   }
   window.scrollTo(0, 0);
+  // Na Cademí, leva a página da aula até o topo do quadro (menos na abertura, para não pular a página)
+  if (window.parentIFrame && telaJaMostrada) window.parentIFrame.scrollToOffset(0, 0);
+  telaJaMostrada = true;
 }
+let telaJaMostrada = false;
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
 
 function openModal(m) { m.hidden = false; document.body.classList.add("modal-open"); const f = m.querySelector("button"); if (f) f.focus({ preventScroll: true }); }
