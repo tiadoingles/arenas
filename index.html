@@ -227,6 +227,23 @@ body.modal-open { overflow: hidden; }
 .demo-cursor.click .ripple { animation: demo-ripple .4s ease-out; }
 @keyframes demo-click { 50% { transform: scale(.8); } }
 @keyframes demo-ripple { from { opacity: .9; transform: scale(.4); } to { opacity: 0; transform: scale(1.6); } }
+.detalhes {
+  display: flex; flex-direction: column; gap: 14px; padding: 20px;
+  background: rgba(255, 200, 87, .1); border: 2px solid #ffc857; border-radius: var(--radius);
+}
+.detalhes-kicker { font-size: .85rem; font-weight: 800; color: #ffc857; letter-spacing: .02em; text-transform: uppercase; }
+.detalhes dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+.detalhes dl div:last-child { grid-column: 1 / -1; }
+.detalhes dt { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.detalhes dd { margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--fg); }
+.detalhes .detalhes-link { font-size: 1rem; color: #ffc857; word-break: break-all; }
+.detalhes-btn { background: #ffc857; color: #1a1405; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  background: #ffc857; color: #1a1405; font-weight: 800; padding: 14px 22px; border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5); white-space: nowrap; max-width: calc(100vw - 32px);
+}
+@media (max-width: 400px) { .detalhes dl { grid-template-columns: 1fr; } .toast { white-space: normal; text-align: center; } }
 .aviso-feriado { display: flex; gap: 8px; align-items: flex-start; font-size: .9rem; font-weight: 700; color: var(--warn); background: rgba(255, 181, 71, .1); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 8px 12px; margin-bottom: -4px; }
 .slot.cancelado { opacity: .55; cursor: not-allowed; text-decoration: line-through; }
 .slot.cancelado:hover { background: var(--surface); border-color: var(--line); }
@@ -458,14 +475,20 @@ body.modal-open { overflow: hidden; }
       <p id="fimTexto"></p>
       <p>Lembre-se de fazer o download do seu material e se preparar antes da sua Arena.</p>
     </div>
+    <div class="detalhes" id="fimDetalhes">
+      <span class="detalhes-kicker">Detalhes da sua Arena</span>
+      <dl>
+        <div><dt>Arena</dt><dd id="fimArena"></dd></div>
+        <div><dt>Dia</dt><dd id="fimDia"></dd></div>
+        <div><dt>Horário</dt><dd id="fimHora"></dd></div>
+        <div><dt>Link da sala</dt><dd id="fimLinkTxt" class="detalhes-link"></dd></div>
+      </dl>
+      <button class="btn detalhes-btn" type="button" id="fimCopiar">COPIAR LINK</button>
+    </div>
     <a class="material" id="materialBtn" href="#" target="_blank" rel="noopener">
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
       <span>BAIXAR O MATERIAL AQUI</span>
     </a>
-    <div class="slot labs-slot" id="fimLink">
-      <span><span class="when">Link da sala</span><span class="muted small" id="fimLinkTxt"></span></span>
-      <button class="lab-btn pegar" type="button" id="fimCopiar">PEGAR LINK</button>
-    </div>
     <button class="link" type="button" data-go="s-arenas">Voltar ao início</button>
   </section>
 
@@ -584,6 +607,8 @@ body.modal-open { overflow: hidden; }
     <button class="btn btn-outline" type="button" id="closeFaq">Fechar</button>
   </div>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <a class="wa" id="wa" href="#" target="_blank" rel="noopener" hidden>
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>
@@ -972,6 +997,20 @@ function copiarLink(link, btn) {
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(link).then(ok, () => window.prompt("Copie o link da sala:", link));
   else window.prompt("Copie o link da sala:", link);
 }
+// Copia o link da sala e mostra por 3 s: "SALVE EM UM LOCAL SEGURO"
+let toastTimer = null;
+function avisar(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 3000);
+}
+function copiarComAviso(link) {
+  const ok = () => avisar("SALVE EM UM LOCAL SEGURO");
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(link).then(ok, () => { window.prompt("Copie o link da sala:", link); ok(); });
+  else { window.prompt("Copie o link da sala:", link); ok(); }
+}
+
 function renderLabs() {
   const box = $("labsSlots"), now = Date.now();
   box.innerHTML = "";
@@ -1102,9 +1141,11 @@ $("goBtn").addEventListener("click", async () => {
     $("fimKicker").textContent = "Escolha registrada";
     $("fimTexto").textContent = "Arena " + nome + " (" + quando + "). Não conseguimos enviar o convite agora: guarde o link da sala abaixo.";
   }
+  $("fimArena").textContent = nome;
+  $("fimDia").textContent = whenLabel(d);
+  $("fimHora").textContent = a.hora + " (Brasília)";
   $("fimLinkTxt").textContent = link;
-  $("fimCopiar").textContent = a.meet ? "PEGAR LINK" : "ABRIR INSCRIÇÃO";
-  $("fimCopiar").onclick = () => a.meet ? copiarLink(link, $("fimCopiar")) : window.open(link, "_blank", "noopener");
+  $("fimCopiar").onclick = () => copiarComAviso(link);
   $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
   show("s-fim");
 });
