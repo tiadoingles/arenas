@@ -107,6 +107,7 @@ a { color: var(--accent); }
 .option[disabled] { opacity: .6; cursor: wait; }
 .option .t { font-weight: 800; font-size: 1.05rem; display: block; }
 .option .d { color: var(--muted); font-size: .95rem; display: block; }
+.option .d:empty { display: none; } /* vazio = sem subtítulo (só aparece o "Conferindo…") */
 .option .arrow { margin-left: auto; color: var(--muted); font-size: 1.3rem; line-height: 1; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--accent)); flex: none; }
 .lv-rc { --c: var(--lv-rc); } .lv-ba { --c: var(--lv-ba); } .lv-in { --c: var(--lv-in); } .lv-av { --c: var(--lv-av); }
@@ -302,10 +303,10 @@ body.modal-open { overflow: hidden; }
     </div>
     <div class="options">
       <button class="option" type="button" id="optMentoria">
-        <span><span class="t">Sou da Mentoria Fluent Mind</span><span class="d">Pratique quantas vezes quiser</span></span><span class="arrow" aria-hidden="true">›</span>
+        <span><span class="t">Sou da Mentoria Fluent Mind</span><span class="d"></span></span><span class="arrow" aria-hidden="true">›</span>
       </button>
       <button class="option" type="button" id="optBlack">
-        <span><span class="t">Sou aluno da Black Friday</span><span class="d">Pratique quantas vezes quiser</span></span><span class="arrow" aria-hidden="true">›</span>
+        <span><span class="t">Sou aluno da Black Friday</span><span class="d"></span></span><span class="arrow" aria-hidden="true">›</span>
       </button>
       <button class="option" type="button" id="optOutros">
         <span><span class="t">Sou aluno de outros cursos</span><span class="d">Método Tia do Inglês e demais cursos</span></span><span class="arrow" aria-hidden="true">›</span>
