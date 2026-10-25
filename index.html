@@ -114,6 +114,29 @@ body.embed { padding-bottom: 72px; }
   padding: 14px 16px; transition: border-color .15s;
 }
 .field input::placeholder { color: #6f817e; }
+/* WhatsApp com DDI selecionável */
+.tel { position: relative; display: flex; gap: 8px; }
+.tel input#fWhats { flex: 1; min-width: 0; }
+.ddi-btn {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; font: inherit; font-size: 1.05rem; font-weight: 700; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 0 12px; cursor: pointer;
+}
+.ddi-btn:hover, .ddi-btn[aria-expanded="true"] { border-color: var(--accent); }
+.ddi-flag { font-size: 1.3rem; line-height: 1; }
+.ddi-seta { color: var(--muted); font-size: .85rem; }
+.ddi-lista {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30;
+  background: var(--surface); border: 1px solid var(--accent-line); border-radius: var(--radius);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55); padding: 10px; display: flex; flex-direction: column; gap: 8px;
+}
+.ddi-lista input { width: 100%; font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.ddi-lista input:focus { outline: none; border-color: var(--accent); }
+.ddi-lista ul { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; overscroll-behavior: contain; }
+.ddi-lista li { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--fg); }
+.ddi-lista li:hover, .ddi-lista li.ativo { background: var(--accent-soft); }
+.ddi-lista li .cod { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ddi-lista li .flag { font-size: 1.2rem; }
+.ddi-lista .vazio { color: var(--muted); cursor: default; }
 .field input:focus { outline: none; border-color: var(--accent); }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .form-error { color: var(--danger); font-weight: 700; font-size: .95rem; }
@@ -426,7 +449,16 @@ body.modal-open { overflow: hidden; }
       </div>
       <div class="field">
         <label for="fWhats">WhatsApp</label>
-        <input id="fWhats" name="whatsapp" type="tel" autocomplete="tel" inputmode="tel" placeholder="(DDD) 99999-9999" required>
+        <div class="tel">
+          <button type="button" class="ddi-btn" id="ddiBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Código do país (DDI)">
+            <span class="ddi-flag" id="ddiFlag">🇧🇷</span><span id="ddiCode">+55</span><span class="ddi-seta" aria-hidden="true">▾</span>
+          </button>
+          <input id="fWhats" name="whatsapp" type="tel" autocomplete="tel-national" inputmode="tel" placeholder="(DDD) 99999-9999" required>
+          <div class="ddi-lista" id="ddiLista" hidden>
+            <input type="search" id="ddiBusca" placeholder="Busque o país ou o código (ex.: Portugal, +351)" autocomplete="off" aria-label="Buscar país">
+            <ul id="ddiOpcoes" role="listbox" aria-label="Países"></ul>
+          </div>
+        </div>
       </div>
       <div class="hp" aria-hidden="true"><label for="fSite">Site</label><input id="fSite" name="site" type="text" tabindex="-1" autocomplete="off"></div>
       <p class="form-error" id="formError" role="alert"></p>
@@ -781,28 +813,127 @@ function closeModal(m) { m.hidden = true; if (![...document.querySelectorAll(".m
 function lerSalvo() { try { return JSON.parse(localStorage.getItem("arenas-aluna") || "null"); } catch (e) { return null; } }
 function salvar(d) { try { localStorage.setItem("arenas-aluna", JSON.stringify(d)); } catch (e) { /* sem armazenamento */ } }
 const salvo = lerSalvo();
-if (salvo) { $("fNome").value = salvo.nome || ""; $("fEmail").value = salvo.email || ""; $("fWhats").value = salvo.whatsapp || ""; }
+if (salvo) { $("fNome").value = salvo.nome || ""; $("fEmail").value = salvo.email || ""; }
 
-$("fWhats").addEventListener("input", e => {
-  const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+// ---------- WhatsApp com DDI ----------
+// Código do país → DDI. Os nomes dos países vêm em português do próprio navegador (Intl.DisplayNames).
+const DDIS = {AF:"93",AX:"358",AL:"355",DZ:"213",AS:"1684",AD:"376",AO:"244",AI:"1264",AG:"1268",AR:"54",AM:"374",AW:"297",AU:"61",AT:"43",AZ:"994",
+  BS:"1242",BH:"973",BD:"880",BB:"1246",BY:"375",BE:"32",BZ:"501",BJ:"229",BM:"1441",BT:"975",BO:"591",BQ:"599",BA:"387",BW:"267",BR:"55",IO:"246",
+  VG:"1284",BN:"673",BG:"359",BF:"226",BI:"257",KH:"855",CM:"237",CA:"1",CV:"238",KY:"1345",CF:"236",TD:"235",CL:"56",CN:"86",CX:"61",CC:"61",
+  CO:"57",KM:"269",CG:"242",CD:"243",CK:"682",CR:"506",CI:"225",HR:"385",CU:"53",CW:"599",CY:"357",CZ:"420",DK:"45",DJ:"253",DM:"1767",DO:"1809",
+  EC:"593",EG:"20",SV:"503",GQ:"240",ER:"291",EE:"372",SZ:"268",ET:"251",FK:"500",FO:"298",FJ:"679",FI:"358",FR:"33",GF:"594",PF:"689",GA:"241",
+  GM:"220",GE:"995",DE:"49",GH:"233",GI:"350",GR:"30",GL:"299",GD:"1473",GP:"590",GU:"1671",GT:"502",GG:"44",GN:"224",GW:"245",GY:"592",HT:"509",
+  HN:"504",HK:"852",HU:"36",IS:"354",IN:"91",ID:"62",IR:"98",IQ:"964",IE:"353",IM:"44",IL:"972",IT:"39",JM:"1876",JP:"81",JE:"44",JO:"962",KZ:"7",
+  KE:"254",KI:"686",XK:"383",KW:"965",KG:"996",LA:"856",LV:"371",LB:"961",LS:"266",LR:"231",LY:"218",LI:"423",LT:"370",LU:"352",MO:"853",MG:"261",
+  MW:"265",MY:"60",MV:"960",ML:"223",MT:"356",MH:"692",MQ:"596",MR:"222",MU:"230",YT:"262",MX:"52",FM:"691",MD:"373",MC:"377",MN:"976",ME:"382",
+  MS:"1664",MA:"212",MZ:"258",MM:"95",NA:"264",NR:"674",NP:"977",NL:"31",NC:"687",NZ:"64",NI:"505",NE:"227",NG:"234",NU:"683",NF:"672",KP:"850",
+  MK:"389",MP:"1670",NO:"47",OM:"968",PK:"92",PW:"680",PS:"970",PA:"507",PG:"675",PY:"595",PE:"51",PH:"63",PL:"48",PT:"351",PR:"1787",QA:"974",
+  RE:"262",RO:"40",RU:"7",RW:"250",BL:"590",SH:"290",KN:"1869",LC:"1758",MF:"590",PM:"508",VC:"1784",WS:"685",SM:"378",ST:"239",SA:"966",SN:"221",
+  RS:"381",SC:"248",SL:"232",SG:"65",SX:"1721",SK:"421",SI:"386",SB:"677",SO:"252",ZA:"27",KR:"82",SS:"211",ES:"34",LK:"94",SD:"249",SR:"597",
+  SJ:"47",SE:"46",CH:"41",SY:"963",TW:"886",TJ:"992",TZ:"255",TH:"66",TL:"670",TG:"228",TK:"690",TO:"676",TT:"1868",TN:"216",TR:"90",TM:"993",
+  TC:"1649",TV:"688",UG:"256",UA:"380",AE:"971",GB:"44",US:"1",UY:"598",VI:"1340",UZ:"998",VU:"678",VA:"39",VE:"58",VN:"84",WF:"681",EH:"212",
+  YE:"967",ZM:"260",ZW:"263"};
+const nomesPais = (() => { try { return new Intl.DisplayNames(["pt-BR"], { type: "region" }); } catch (e) { return null; } })();
+const bandeira = iso => String.fromCodePoint(...[...iso].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+const semAcento = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const PAISES = Object.entries(DDIS)
+  .map(([iso, ddi]) => ({ iso, ddi, nome: (nomesPais && nomesPais.of(iso)) || iso, flag: bandeira(iso) }))
+  .sort((a, b) => a.iso === "BR" ? -1 : b.iso === "BR" ? 1 : a.nome.localeCompare(b.nome, "pt-BR"));
+let pais = PAISES[0]; // Brasil
+
+function escolherPais(p, focarNumero) {
+  pais = p;
+  $("ddiFlag").textContent = p.flag;
+  $("ddiCode").textContent = "+" + p.ddi;
+  $("ddiBtn").setAttribute("aria-label", "Código do país (DDI): " + p.nome + " +" + p.ddi);
+  $("fWhats").placeholder = p.iso === "BR" ? "(DDD) 99999-9999" : "Número com código de área";
+  formatarNumero();
+  fecharDdi();
+  if (focarNumero) $("fWhats").focus();
+}
+function formatarNumero() {
+  const campo = $("fWhats");
+  if (pais.iso !== "BR") { campo.value = campo.value.replace(/[^\d\s-]/g, "").slice(0, 18); return; }
+  const d = campo.value.replace(/\D/g, "").slice(0, 11);
   let v = d;
   if (d.length > 2) v = "(" + d.slice(0, 2) + ") " + d.slice(2);
   if (d.length > 7) v = "(" + d.slice(0, 2) + ") " + d.slice(2, d.length - 4) + "-" + d.slice(d.length - 4);
-  e.target.value = v;
+  campo.value = v;
+}
+$("fWhats").addEventListener("input", formatarNumero);
+
+function listarPaises(busca) {
+  const q = semAcento(busca.trim()), num = busca.replace(/\D/g, "");
+  const achados = PAISES.filter(p => !q || semAcento(p.nome).includes(q) || p.iso.toLowerCase() === q || (num && p.ddi.startsWith(num)));
+  const ul = $("ddiOpcoes");
+  ul.innerHTML = "";
+  if (!achados.length) { ul.innerHTML = '<li class="vazio">Nenhum país encontrado</li>'; return; }
+  achados.forEach((p, i) => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.setAttribute("aria-selected", p === pais ? "true" : "false");
+    if (i === 0) li.classList.add("ativo");
+    li.innerHTML = '<span class="flag"></span><span class="nome"></span><span class="cod"></span>';
+    li.querySelector(".flag").textContent = p.flag;
+    li.querySelector(".nome").textContent = p.nome;
+    li.querySelector(".cod").textContent = "+" + p.ddi;
+    li.addEventListener("click", () => escolherPais(p, true));
+    ul.appendChild(li);
+  });
+}
+function abrirDdi() {
+  $("ddiLista").hidden = false;
+  $("ddiBtn").setAttribute("aria-expanded", "true");
+  $("ddiBusca").value = "";
+  listarPaises("");
+  $("ddiBusca").focus();
+}
+function fecharDdi() {
+  $("ddiLista").hidden = true;
+  $("ddiBtn").setAttribute("aria-expanded", "false");
+}
+$("ddiBtn").addEventListener("click", () => $("ddiLista").hidden ? abrirDdi() : fecharDdi());
+$("ddiBusca").addEventListener("input", e => listarPaises(e.target.value));
+$("ddiBusca").addEventListener("keydown", e => {
+  const itens = [...$("ddiOpcoes").querySelectorAll("li:not(.vazio)")];
+  let i = itens.findIndex(li => li.classList.contains("ativo"));
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    if (!itens.length) return;
+    if (i > -1) itens[i].classList.remove("ativo");
+    i = e.key === "ArrowDown" ? Math.min(itens.length - 1, i + 1) : Math.max(0, i - 1);
+    itens[i].classList.add("ativo"); itens[i].scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    if (itens[i > -1 ? i : 0]) itens[i > -1 ? i : 0].click();
+  } else if (e.key === "Escape") {
+    fecharDdi(); $("ddiBtn").focus();
+  }
 });
+document.addEventListener("click", e => { if (!$("ddiLista").hidden && !e.target.closest(".tel")) fecharDdi(); });
+
+// Dados salvos neste aparelho (versões antigas guardavam só o número brasileiro)
+if (salvo) {
+  const p = salvo.ddiIso && PAISES.find(x => x.iso === salvo.ddiIso);
+  if (p) escolherPais(p);
+  $("fWhats").value = salvo.numero || salvo.whatsapp || "";
+  formatarNumero();
+}
 
 $("startForm").addEventListener("submit", async e => {
   e.preventDefault();
   const nome = $("fNome").value.trim().replace(/\s+/g, " ");
   const email = $("fEmail").value.trim().toLowerCase();
-  const whatsapp = $("fWhats").value.replace(/\D/g, "");
+  const numero = $("fWhats").value.replace(/\D/g, "");
+  const whatsapp = pais.ddi + numero; // sempre com DDI (ex.: 5511999998888)
   const err = $("formError");
   err.textContent = "";
   if (nome.length < 2) { err.textContent = "Digite seu nome."; $("fNome").focus(); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = "Confira o seu e-mail."; $("fEmail").focus(); return; }
-  if (whatsapp.length < 10) { err.textContent = "Digite o WhatsApp com DDD."; $("fWhats").focus(); return; }
-  aluna = { nome, email, whatsapp, site: $("fSite").value, sessao: novaSessao(), acesso: ACESSO, dispositivo: DISPOSITIVO };
-  salvar({ nome, email, whatsapp: $("fWhats").value });
+  if (pais.iso === "BR" && (numero.length < 10 || numero.length > 11)) { err.textContent = "Digite o WhatsApp com DDD (ex.: 11 99999-9999)."; $("fWhats").focus(); return; }
+  if (pais.iso !== "BR" && (numero.length < 6 || numero.length > 14)) { err.textContent = "Confira o número do WhatsApp (sem o código do país)."; $("fWhats").focus(); return; }
+  aluna = { nome, email, whatsapp, ddi: pais.ddi, pais: pais.iso, site: $("fSite").value, sessao: novaSessao(), acesso: ACESSO, dispositivo: DISPOSITIVO };
+  salvar({ nome, email, ddiIso: pais.iso, numero: $("fWhats").value });
   document.querySelectorAll(".helloName").forEach(el => { el.textContent = nome.split(" ")[0]; });
   // Confere o e-mail na lista da Mentoria (se achar, a planilha grava como "Mentoria")
   const btn = $("startBtn");
