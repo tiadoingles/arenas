@@ -425,6 +425,50 @@ body.modal-open { overflow: hidden; }
   .panel-labs { grid-template-columns: 96px 1fr; }
   .panel-labs p { display: none; }
 }
+/* Tela final compacta: tudo na primeira dobra */
+#s-fim { padding-top: 28px; gap: 18px; }
+.embed #s-fim { padding-top: 14px; }
+.fim-head { gap: 6px; }
+.fim-head h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); }
+.fim-head p { font-size: 1rem; line-height: 1.5; }
+.fim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+.fim-grid .detalhes { padding: 18px; gap: 12px; justify-content: space-between; }
+.fim-grid .detalhes dl { grid-template-columns: 1.2fr 1.4fr .9fr; gap: 10px 14px; }
+.fim-grid .detalhes dl div:last-child { grid-column: 1 / -1; }
+.fim-grid .detalhes dd { font-size: 1.05rem; line-height: 1.3; }
+.fim-grid .detalhes .detalhes-link { font-size: .95rem; }
+.fim-grid .detalhes-btn { min-height: 48px; }
+.fim-grid .material-destaque { padding: 20px 18px; gap: 6px; justify-content: center; }
+.fim-grid .material-icone { width: 54px; height: 54px; }
+.fim-grid .material-destaque h2 { font-size: 1.4rem; }
+.fim-grid .material-btn { min-height: 54px; font-size: 1rem; margin-top: 8px; }
+@media (max-width: 760px) {
+  #s-fim { padding-top: 16px; gap: 14px; }
+  .fim-head p { font-size: .92rem; }
+  .fim-grid { grid-template-columns: 1fr; gap: 12px; }
+  .fim-grid .detalhes { padding: 14px; gap: 10px; }
+  .fim-grid .detalhes dl { grid-template-columns: 1fr 1.25fr .8fr; gap: 6px 10px; }
+  .fim-grid .detalhes dt { font-size: .72rem; }
+  .fim-grid .detalhes dd { font-size: .9rem; }
+  .fim-grid .detalhes .detalhes-link { font-size: .85rem; }
+  .fim-grid .detalhes-btn { min-height: 44px; font-size: .95rem; padding: 8px 14px; }
+  .fim-grid .material-destaque { padding: 14px; flex-direction: column; }
+  .fim-grid .material-icone, .fim-grid .material-destaque p { display: none; }
+  .fim-grid .material-destaque h2 { font-size: 1.15rem; }
+  .fim-grid .material-btn { min-height: 50px; font-size: .95rem; margin-top: 6px; }
+  /* celular: espaço extra para caber tudo acima da dobra mesmo com a barra do navegador */
+  .topbar { padding: 8px 20px; }
+  .topbar-btn { padding: 6px 12px; font-size: .82rem; }
+  #s-fim { padding-top: 10px; gap: 10px; }
+  .fim-head .kicker, .fim-grid .detalhes-kicker, .fim-grid .material-kicker { display: none; }
+  .fim-head h1 { font-size: 1.5rem; }
+  .fim-head p { font-size: .86rem; line-height: 1.4; }
+  .fim-grid { gap: 10px; }
+  .fim-grid .detalhes { padding: 12px 14px; gap: 8px; }
+  .fim-grid .detalhes-btn { min-height: 40px; }
+  .fim-grid .material-destaque { padding: 12px 14px; gap: 4px; }
+  .fim-grid .material-btn { min-height: 46px; }
+}
 </style>
 <!-- Página incorporada na Cademí: a aula usa iframe-resizer v4.2.11 (quadro começa com altura 0 e
      espera a página informar a altura). Esta é a parte "filha" da MESMA versão. Fora de iframe não faz nada. -->
@@ -588,32 +632,33 @@ body.modal-open { overflow: hidden; }
     <button class="link" type="button" data-go="s-horario">Trocar horário</button>
   </section>
 
-  <!-- Parabéns -->
+  <!-- Parabéns: tudo na primeira dobra (computador: detalhes e material lado a lado) -->
   <section class="screen" id="s-fim" hidden>
-    <div class="screen-head">
+    <div class="screen-head fim-head">
       <span class="kicker" id="fimKicker">Inscrição confirmada</span>
       <h1>PARABÉNS!</h1>
       <p id="fimTexto"></p>
-      <p>Lembre-se de fazer o download do seu material e se preparar antes da sua Arena.</p>
     </div>
-    <div class="detalhes" id="fimDetalhes">
-      <span class="detalhes-kicker">Detalhes da sua Arena</span>
-      <dl>
-        <div><dt>Arena</dt><dd id="fimArena"></dd></div>
-        <div><dt>Dia</dt><dd id="fimDia"></dd></div>
-        <div><dt>Horário</dt><dd id="fimHora"></dd></div>
-        <div><dt>Link da sala</dt><dd id="fimLinkTxt" class="detalhes-link"></dd></div>
-      </dl>
-      <button class="btn detalhes-btn" type="button" id="fimCopiar">COPIAR LINK</button>
-    </div>
-    <div class="material-destaque">
-      <div class="material-icone" aria-hidden="true">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+    <div class="fim-grid">
+      <div class="detalhes" id="fimDetalhes">
+        <span class="detalhes-kicker">Detalhes da sua Arena</span>
+        <dl>
+          <div><dt>Arena</dt><dd id="fimArena"></dd></div>
+          <div><dt>Dia</dt><dd id="fimDia"></dd></div>
+          <div><dt>Horário</dt><dd id="fimHora"></dd></div>
+          <div class="fim-link"><dt>Link da sala</dt><dd id="fimLinkTxt" class="detalhes-link"></dd></div>
+        </dl>
+        <button class="btn detalhes-btn" type="button" id="fimCopiar">COPIAR LINK</button>
       </div>
-      <span class="material-kicker">Passo obrigatório</span>
-      <h2>Material da sua Arena</h2>
-      <p>Baixe agora e estude o conteúdo antes da Arena.</p>
-      <a class="btn material-btn" id="materialBtn" href="#" target="_blank" rel="noopener">APERTE AQUI E BAIXE SEU MATERIAL</a>
+      <div class="material-destaque">
+        <div class="material-icone" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        </div>
+        <span class="material-kicker">Passo obrigatório</span>
+        <h2>Material da sua Arena</h2>
+        <p>Baixe agora e estude o conteúdo antes da Arena.</p>
+        <a class="btn material-btn" id="materialBtn" href="#" target="_blank" rel="noopener">APERTE AQUI E BAIXE SEU MATERIAL</a>
+      </div>
     </div>
     <button class="link" type="button" data-go="s-arenas">Voltar ao início</button>
   </section>
@@ -828,7 +873,7 @@ function show(id, voltando) {
   if (!voltando && telaAtual && telaAtual !== id) historico.push(telaAtual);
   telaAtual = id;
   TELAS.forEach(t => { $(t).hidden = t !== id; });
-  document.querySelector(".page").classList.toggle("wide", id === "s-arenas");
+  document.querySelector(".page").classList.toggle("wide", id === "s-arenas" || id === "s-fim");
   // Passos: mentorada = Arena → horário → confirmação; demais = Arena → curso → horário → confirmação
   const passos = mentorada ? ["s-arenas", "s-horario", "s-antes"] : ["s-arenas", "s-perfil", "s-horario", "s-antes"];
   const prog = $(id).querySelector(".progress"), i = passos.indexOf(id);
@@ -1469,7 +1514,7 @@ $("goBtn").addEventListener("click", async () => {
   const nome = CONFIG.niveis[selected].nome, quando = whenLabel(d) + ", " + a.hora;
   if (res && res.ok && "link" in res) { // "link" só vem do Apps Script novo, que de fato inscreve na agenda
     $("fimKicker").textContent = "Inscrição confirmada";
-    $("fimTexto").textContent = "Você está inscrita na Arena " + nome + " (" + quando + "). O convite com o link da sala foi enviado para " + aluna.email + ".";
+    $("fimTexto").textContent = "Você está inscrita na Arena " + nome + ". O convite com o link da sala foi enviado para " + aluna.email + ".";
   } else if (!a.meet) {
     $("fimKicker").textContent = "Falta um passo";
     $("fimTexto").textContent = "Para esta Arena (" + nome + ", " + quando + "), a inscrição é feita na página do Zoom: abra o link abaixo e preencha seus dados.";
