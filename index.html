@@ -350,7 +350,22 @@ body.modal-open { overflow: hidden; }
   .is-mentorada .panel { padding: 12px; border-radius: 16px; }
   .is-mentorada .panel-arenas .arenas { gap: 10px; }
 }
-.labs-slot { cursor: default; flex-wrap: wrap; }
+.labs-slot { cursor: default; flex-wrap: wrap; position: relative; }
+/* AO VIVO: borda verde piscando + selo vermelho no canto (10 min antes até 5 min depois) */
+.labs-slot.ao-vivo { border: 2px solid var(--accent); background: var(--accent-soft); animation: piscar-borda 1.1s ease-in-out infinite; }
+.labs-slot.ao-vivo:hover { border-color: var(--accent); background: var(--accent-soft); }
+@keyframes piscar-borda {
+  0%, 100% { border-color: var(--accent); box-shadow: 0 0 22px rgba(46, 230, 194, .45); }
+  50% { border-color: rgba(46, 230, 194, .12); box-shadow: 0 0 0 rgba(46, 230, 194, 0); }
+}
+.ao-vivo-badge {
+  position: absolute; top: -11px; right: 14px; display: inline-flex; align-items: center; gap: 6px;
+  background: #e5252a; color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .08em;
+  padding: 3px 10px 3px 8px; border-radius: 999px; box-shadow: 0 4px 12px rgba(229, 37, 42, .45);
+}
+.ao-vivo-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: pulsar-ponto 1s ease-in-out infinite; }
+@keyframes pulsar-ponto { 50% { opacity: .25; transform: scale(.7); } }
+@media (prefers-reduced-motion: reduce) { .labs-slot.ao-vivo, .ao-vivo-badge::before { animation: none; } }
 .labs-slot:hover { background: var(--surface); border-color: var(--line); }
 .labs-slot.featured:hover { background: var(--accent-soft); border-color: var(--accent-line); }
 .lab-btn {
@@ -1282,6 +1297,7 @@ function renderProximas() {
 // O próximo horário fica em destaque no topo. "ENTRAR NA SALA" só aparece de 5 min antes até 5 min depois
 // do início; fora disso, "COPIAR LINK" copia o link da sala e mostra o aviso para salvar.
 const JANELA = 5 * 60000;
+const ANTES_AO_VIVO = 10 * 60000; // destaque AO VIVO a partir de 10 min antes do início
 function proximaLab(l) {
   const now = new Date(), [h, m] = l.hora.split(":").map(Number);
   const d = new Date(now);
@@ -1337,10 +1353,14 @@ function renderLabs() {
     const fer = feriado(d);
     if (fer) box.appendChild(avisoFeriado(fer, d));
     const aberta = !fer && Math.abs(d.getTime() - now) <= JANELA;
+    // AO VIVO: de 10 min antes até 5 min depois do início (depois disso o horário vai para a próxima semana)
+    const aoVivo = !fer && d.getTime() - now <= ANTES_AO_VIVO && now - d.getTime() <= JANELA;
+    const faltamMin = Math.ceil((d.getTime() - now) / 60000);
+    const tag = aoVivo ? (faltamMin > 0 ? "Começa em " + faltamMin + " min" : "Acontecendo agora") : (aberta ? "Acontecendo agora" : "Próximo horário");
     const row = document.createElement("div");
-    row.className = "slot labs-slot" + (i === primeiro ? " featured" : "") + (fer ? " cancelado" : "");
-    row.innerHTML = '<span class="hora"></span><span>' +
-      (i === primeiro ? '<span class="tag">' + (aberta ? "Acontecendo agora" : "Próximo horário") + '</span>' : '') +
+    row.className = "slot labs-slot" + (i === primeiro ? " featured" : "") + (aoVivo ? " ao-vivo" : "") + (fer ? " cancelado" : "");
+    row.innerHTML = (aoVivo ? '<span class="ao-vivo-badge">AO VIVO</span>' : '') + '<span class="hora"></span><span>' +
+      (i === primeiro || aoVivo ? '<span class="tag">' + tag + '</span>' : '') +
       '<span class="lab-tipo"></span><span class="when"></span></span>';
     row.querySelector(".hora").textContent = l.hora;
     row.querySelector(".lab-tipo").textContent = l.tipo;
