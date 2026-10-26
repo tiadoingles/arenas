@@ -295,7 +295,6 @@ body.modal-open { overflow: hidden; }
 .slot.cancelado { opacity: .55; cursor: not-allowed; text-decoration: line-through; }
 .slot.cancelado:hover { background: var(--surface); border-color: var(--line); }
 .lab-tipo { display: block; font-size: .8rem; font-weight: 800; color: var(--muted); }
-.lab-tipo.sessao { color: #ffc857; }
 .aviso-video { text-align: center; font-weight: 800; font-size: 1.05rem; color: var(--warn); background: rgba(255, 181, 71, .12); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 10px 14px; margin: 0; }
 /* Material em destaque na tela final */
 .material-destaque {
@@ -560,8 +559,8 @@ body.modal-open { overflow: hidden; }
   <section class="screen" id="s-labs" hidden>
     <div class="screen-head">
       <span class="kicker">Exclusivo da Mentoria</span>
-      <h2>Fluent Labs e Sessões Práticas</h2>
-      <p class="muted">Fluent Labs e Sessões Práticas · horário de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>COPIAR LINK</b> e salve o link em local seguro.</p>
+      <h2>Fluent Labs</h2>
+      <p class="muted">Horários de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>COPIAR LINK</b> e salve o link em local seguro.</p>
     </div>
     <div class="slots" id="labsSlots"></div>
     <button class="link" type="button" data-go="s-arenas">Voltar</button>
@@ -792,7 +791,7 @@ const CONFIG = {
     "2027-10-12": "Nossa Senhora Aparecida", "2027-11-02": "Finados", "2027-11-15": "Proclamação da República",
     "2027-11-20": "Dia da Consciência Negra", "2027-12-25": "Natal"
   },
-  // Os horários e links do Fluent Labs e da Sessão Prática NÃO ficam aqui: vêm do Apps Script,
+  // Os horários e links do Fluent Labs NÃO ficam aqui: vêm do Apps Script,
   // só para quem está na lista da Mentoria.
   // Pastas do Drive com o material (aparecem no Parabéns, depois do Prosseguir)
   materialRecemChegados: "https://drive.google.com/drive/folders/1LNnWmxeio2ZGQxVwAiwTYegEtakL4UrL?usp=share_link",
@@ -849,7 +848,7 @@ let selected = null;  // nível
 // ---------- Navegação entre telas ----------
 const TELAS = ["s-entrada", "s-arenas", "s-labs", "s-perfil", "s-horario", "s-antes", "s-fim"];
 let mentorada = false; // e-mail encontrado na lista da Mentoria: pula a escolha de curso e vê o Fluent Labs
-let praticas = [];      // Fluent Labs + Sessão Prática: só chegam do Apps Script para quem está na lista
+let praticas = [];      // Fluent Labs: só chegam do Apps Script para quem está na lista
 let escolha = null;     // { a, d } Arena e data escolhidas
 // Histórico das telas do sistema para o botão VOLTAR (na primeira tela, VOLTAR leva ao HOME da Cademí)
 const HOME_URL = "https://alunos.tiadoingles.com.br/area/vitrine/home";
@@ -1015,7 +1014,7 @@ $("startForm").addEventListener("submit", async e => {
   const res = await enviar({ tipo: "mentoria" });
   btn.disabled = false; btn.textContent = "Iniciar";
   mentorada = !!(res && res.encontrada === true);
-  praticas = mentorada && res && Array.isArray(res.praticas) ? res.praticas : [];
+  praticas = mentorada && res && Array.isArray(res.praticas) ? res.praticas.filter(l => l && l.tipo === "Fluent Labs") : []; // só Fluent Labs aparece nesta página
   $("labsBlock").hidden = !praticas.length;
   $("arenasLabel").hidden = !mentorada;
   $("s-arenas").classList.toggle("is-mentorada", mentorada);
@@ -1342,7 +1341,6 @@ function renderLabs() {
       '<span class="lab-tipo"></span><span class="when"></span></span>';
     row.querySelector(".hora").textContent = l.hora;
     row.querySelector(".lab-tipo").textContent = l.tipo;
-    if (l.tipo !== "Fluent Labs") row.querySelector(".lab-tipo").classList.add("sessao");
     row.querySelector(".when").textContent = whenLabel(d);
     if (!fer) {
       let btn;
