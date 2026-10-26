@@ -291,17 +291,6 @@ body.modal-open { overflow: hidden; }
   box-shadow: 0 10px 30px rgba(0, 0, 0, .5); text-align: center; width: max-content; max-width: min(460px, calc(100vw - 32px));
 }
 @media (max-width: 400px) { .detalhes dl { grid-template-columns: 1fr; } .toast { white-space: normal; text-align: center; } }
-.proximas { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; border: 1px solid var(--accent-line); background: var(--accent-soft); }
-.proximas-kicker { font-size: .8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: .02em; }
-.proximas-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 10px; }
-.proxima { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
-.proxima .hora { font-size: 1.3rem; font-weight: 800; color: var(--fg); min-width: 58px; font-variant-numeric: tabular-nums; }
-.proxima .info { display: flex; flex-direction: column; min-width: 0; }
-.proxima .tipo { font-weight: 800; color: var(--c, var(--fg)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.proxima .quando { font-size: .85rem; color: var(--muted); }
-.proxima .lab-btn { margin-left: auto; }
-.proxima .lab-btn.agendar { background: var(--c); color: var(--on-accent); border-color: var(--c); }
-@media (max-width: 460px) { .proximas-lista { grid-template-columns: 1fr; } .proxima { flex-wrap: wrap; } .proxima .lab-btn { margin-left: 0; width: 100%; text-align: center; } }
 .aviso-feriado { display: flex; gap: 8px; align-items: flex-start; font-size: .9rem; font-weight: 700; color: var(--warn); background: rgba(255, 181, 71, .1); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 8px 12px; margin-bottom: -4px; }
 .slot.cancelado { opacity: .55; cursor: not-allowed; text-decoration: line-through; }
 .slot.cancelado:hover { background: var(--surface); border-color: var(--line); }
@@ -545,10 +534,6 @@ body.modal-open { overflow: hidden; }
     <div class="screen-head">
       <h2>Olá, <span class="helloName"></span>! <span id="arenasTitle">Escolha a sua Arena</span></h2>
       <p class="muted" id="arenasSub">Escolha a sua Arena para ver as instruções e fazer a sua inscrição.</p>
-    </div>
-    <div class="proximas" id="proximas" hidden>
-      <span class="proximas-kicker">Começando em breve · próximas 4 horas</span>
-      <div class="proximas-lista" id="proximasLista"></div>
     </div>
     <div class="praticas">
       <div class="panel panel-arenas">
@@ -877,7 +862,6 @@ function show(id, voltando) {
   // Passos: mentorada = Arena → horário → confirmação; demais = Arena → curso → horário → confirmação
   const passos = mentorada ? ["s-arenas", "s-horario", "s-antes"] : ["s-arenas", "s-perfil", "s-horario", "s-antes"];
   const prog = $(id).querySelector(".progress"), i = passos.indexOf(id);
-  if (id === "s-arenas") renderProximas();
   if (prog && i > -1) {
     prog.innerHTML = '<span>Passo ' + (i + 1) + ' de ' + passos.length + '</span><div class="bar"><span></span></div>';
     prog.querySelector(".bar span").style.width = Math.round((i + 1) / passos.length * 100) + "%";
@@ -1287,57 +1271,6 @@ function avisoFeriado(nome, d) {
   return p;
 }
 
-// ---------- Começando em breve (só mentoradas) ----------
-// Arenas, Fluent Labs e Sessões Práticas que começam nas próximas 4 horas (ou que acabaram de começar).
-const JANELA_PROXIMAS = 4 * 3600000;
-function faltam(ms) {
-  if (ms <= 0) return "acontecendo agora";
-  const min = Math.round(ms / 60000), h = Math.floor(min / 60), m = min % 60;
-  return "começa em " + (h ? h + "h" + (m ? " " + m + "min" : "") : m + " min");
-}
-function renderProximas() {
-  const box = $("proximasLista"), now = Date.now();
-  box.innerHTML = "";
-  if (!mentorada) { $("proximas").hidden = true; return; }
-  const itens = [];
-  CONFIG.arenas.forEach(a => {
-    const d = nextOccurrence(a);
-    if (d - now <= JANELA_PROXIMAS && !feriado(d)) itens.push({ d, hora: a.hora, nivel: a.nivel, tipo: "Arena " + CONFIG.niveis[a.nivel].nome, cls: CONFIG.niveis[a.nivel].cls });
-  });
-  praticas.forEach(l => {
-    const d = proximaLab(l);
-    if (d - now <= JANELA_PROXIMAS && !feriado(d)) itens.push({ d, hora: l.hora, link: l.link, tipo: l.tipo });
-  });
-  itens.sort((x, y) => x.d - y.d).forEach(it => {
-    const row = document.createElement("div");
-    row.className = "proxima" + (it.cls ? " " + it.cls : "");
-    if (!it.cls) row.style.setProperty("--c", "#ffc857"); // Fluent Labs e Sessão Prática: dourado, como o bloco da Mentoria
-    row.innerHTML = '<span class="hora"></span><span class="info"><span class="tipo"></span><span class="quando"></span></span>';
-    row.querySelector(".hora").textContent = it.hora;
-    row.querySelector(".tipo").textContent = it.tipo;
-    row.querySelector(".quando").textContent = (whenLabel(it.d).startsWith("Hoje") ? "Hoje" : whenLabel(it.d)) + " · " + faltam(it.d - now);
-    let btn;
-    if (it.nivel) { // Arena: precisa de inscrição (vídeo + checklist)
-      btn = document.createElement("button");
-      btn.type = "button"; btn.className = "lab-btn agendar"; btn.textContent = "Agendar";
-      btn.addEventListener("click", () => abrirArena(it.nivel));
-    } else if (Math.abs(it.d - now) <= JANELA) {
-      btn = document.createElement("a");
-      btn.className = "lab-btn entrar"; btn.href = it.link; btn.target = "_blank"; btn.rel = "noopener";
-      btn.textContent = "ENTRAR NA SALA";
-      btn.addEventListener("click", () => registrarLink("entrou", it.tipo, it.d));
-    } else {
-      btn = document.createElement("button");
-      btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
-      btn.addEventListener("click", () => { copiarComAviso(it.link, AVISO_LINK_LABS); registrarLink("copiou", it.tipo, it.d); });
-    }
-    btn.setAttribute("aria-label", btn.textContent + ": " + it.tipo + " às " + it.hora);
-    row.appendChild(btn);
-    box.appendChild(row);
-  });
-  $("proximas").hidden = !itens.length;
-}
-
 // ---------- Fluent Labs ----------
 // O próximo horário fica em destaque no topo. "ENTRAR NA SALA" só aparece de 5 min antes até 5 min depois
 // do início; fora disso, "COPIAR LINK" copia o link da sala e mostra o aviso para salvar.
@@ -1434,7 +1367,6 @@ $("openLabs").addEventListener("click", () => { renderLabs(); show("s-labs"); })
 setInterval(() => {
   if (document.querySelector(".lab-btn.pegar:focus")) return;
   if (!$("s-labs").hidden) renderLabs();
-  if (!$("s-arenas").hidden) renderProximas();
 }, 20000);
 
 // ---------- Horários ----------
