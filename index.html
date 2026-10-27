@@ -285,6 +285,19 @@ body.modal-open { overflow: hidden; }
 .detalhes dd { margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--fg); }
 .detalhes .detalhes-link { font-size: 1rem; color: #ffc857; word-break: break-all; }
 .detalhes-btn { background: #ffc857; color: #1a1405; }
+/* 1ª tela no celular: as 4 Arenas na primeira dobra */
+@media (max-width: 640px) {
+  #s-arenas { padding-top: 16px; gap: 14px; }
+  #s-arenas .progress { display: none; }
+  #s-arenas .screen-head { gap: 4px; }
+  #s-arenas h1 { font-size: 1.35rem; }
+  #s-arenas .screen-head .muted { font-size: .9rem; line-height: 1.4; }
+  #s-arenas .arena img { aspect-ratio: 5 / 2; }
+}
+.agenda-aviso { margin: 0; font-size: .9rem; font-weight: 700; color: var(--fg); line-height: 1.45; }
+.agenda-aviso::before { content: "✓ "; color: #ffc857; }
+#dadosModal .modal-box { gap: 16px; }
+#dadosModal .form { gap: 14px; }
 .toast {
   position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
   background: #ffc857; color: #1a1405; font-weight: 800; padding: 14px 22px; border-radius: 14px;
@@ -491,12 +504,78 @@ body.modal-open { overflow: hidden; }
 </nav>
 <div class="page">
 
-  <!-- Entrada (tela inicial) -->
-  <main class="screen" id="s-entrada">
+  <!-- Arenas (tela inicial) -->
+  <main class="screen" id="s-arenas">
+    <div class="progress"></div>
     <div class="screen-head">
       <span class="kicker">Fluent Mind Academy</span>
       <h1>Sistema de agendamento de <span class="accent">Práticas Fluent Mind Academy</span></h1>
-      <p class="muted">Preencha seus dados para começar.</p>
+      <p class="muted">Escolha a sua Arena para ver as instruções e os horários.</p>
+    </div>
+    <div class="arenas" id="arenas"></div>
+  </main>
+
+
+  <!-- Horário -->
+  <section class="screen" id="s-horario" hidden>
+    <div class="progress"></div>
+    <div class="screen-head">
+      <h2>Escolha o dia e o horário</h2>
+      <p class="muted" id="nivelLabel"></p>
+    </div>
+    <div class="slots" id="slots"></div>
+    <button class="link" type="button" data-go="s-arenas">Trocar de Arena</button>
+  </section>
+
+
+  <!-- Parabéns: tudo na primeira dobra (computador: detalhes e material lado a lado) -->
+  <section class="screen" id="s-fim" hidden>
+    <div class="screen-head fim-head">
+      <span class="kicker" id="fimKicker">Inscrição confirmada</span>
+      <h1>PARABÉNS!</h1>
+      <p id="fimTexto"></p>
+    </div>
+    <div class="fim-grid">
+      <div class="detalhes" id="fimDetalhes">
+        <span class="detalhes-kicker">Detalhes da sua Arena</span>
+        <dl>
+          <div><dt>Arena</dt><dd id="fimArena"></dd></div>
+          <div><dt>Dia</dt><dd id="fimDia"></dd></div>
+          <div><dt>Horário</dt><dd id="fimHora"></dd></div>
+          <div class="fim-link"><dt>Link da sala</dt><dd id="fimLinkTxt" class="detalhes-link"></dd></div>
+        </dl>
+        <button class="btn detalhes-btn" type="button" id="fimCopiar">COPIAR LINK</button>
+        <p class="agenda-aviso" id="fimAgenda" hidden></p>
+      </div>
+      <div class="material-destaque">
+        <div class="material-icone" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        </div>
+        <span class="material-kicker">Passo obrigatório</span>
+        <h2>Material da sua Arena</h2>
+        <p>Baixe agora e estude o conteúdo antes da Arena.</p>
+        <a class="btn material-btn" id="materialBtn" href="#" target="_blank" rel="noopener">APERTE AQUI E BAIXE SEU MATERIAL</a>
+      </div>
+    </div>
+    <button class="link" type="button" data-go="s-arenas">Voltar ao início</button>
+  </section>
+
+  <footer class="foot" id="foot" hidden>
+    <button class="link" type="button" id="openInfo">Como funciona</button>
+    <button class="link" type="button" id="openFaq">Dúvidas frequentes</button>
+  </footer>
+</div>
+
+<!-- Popup: dados da aluna (abre ao escolher o horário) -->
+<div class="modal" id="dadosModal" role="dialog" aria-modal="true" aria-labelledby="dadosTitle" hidden>
+  <div class="modal-box">
+    <div class="block">
+      <span class="kicker">Último passo</span>
+      <h2 id="dadosTitle">Preencha seus dados</h2>
+    </div>
+    <div class="summary">
+      <span class="muted small">Você escolheu</span>
+      <strong id="chosenText"></strong>
     </div>
     <form class="form" id="startForm" novalidate>
       <div class="field">
@@ -522,55 +601,18 @@ body.modal-open { overflow: hidden; }
       </div>
       <div class="hp" aria-hidden="true"><label for="fSite">Site</label><input id="fSite" name="site" type="text" tabindex="-1" autocomplete="off"></div>
       <p class="form-error" id="formError" role="alert"></p>
-      <button class="btn" type="submit" id="startBtn">Iniciar</button>
+      <button class="btn" type="submit" id="startBtn">Confirmar minha inscrição</button>
       <p class="muted small">Seus dados ficam só com a equipe da Tia do Inglês.</p>
     </form>
-  </main>
+    <button class="link" type="button" id="dadosVoltar">Escolher outro horário</button>
+  </div>
+</div>
 
-  <!-- Arenas (e Fluent Labs, só para mentoradas) -->
-  <section class="screen" id="s-arenas" hidden>
-    <div class="progress"></div>
-    <div class="screen-head">
-      <h2>Olá, <span class="helloName"></span>! <span id="arenasTitle">Escolha a sua Arena</span></h2>
-      <p class="muted" id="arenasSub">Escolha a sua Arena para ver as instruções e fazer a sua inscrição.</p>
-    </div>
-    <div class="praticas">
-      <div class="panel panel-arenas">
-        <div class="panel-head" id="arenasLabel" hidden>
-          <span class="panel-kicker">Prática em grupo, por nível</span>
-          <h3>Arenas de Conversação</h3>
-        </div>
-        <div class="arenas" id="arenas"></div>
-      </div>
-      <div class="panel panel-labs" id="labsBlock" hidden>
-        <div class="panel-head">
-          <span class="panel-kicker">Exclusivo da Mentoria</span>
-          <h3>Fluent Labs</h3>
-        </div>
-        <img src="img/fluent-labs.svg" alt="">
-        <p>Salas de prática com os tutores, de segunda a sexta. Entre no horário que for melhor para você.</p>
-        <button class="btn" type="button" id="openLabs">Ver dias e horários</button>
-      </div>
-    </div>
-    <button class="link" type="button" data-go="s-entrada">Voltar e corrigir meus dados</button>
-  </section>
-
-  <!-- Fluent Labs -->
-  <section class="screen" id="s-labs" hidden>
-    <div class="screen-head">
-      <span class="kicker">Exclusivo da Mentoria</span>
-      <h2>Fluent Labs</h2>
-      <p class="muted">Horários de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>COPIAR LINK</b> e salve o link em local seguro.</p>
-    </div>
-    <div class="slots" id="labsSlots"></div>
-    <button class="link" type="button" data-go="s-arenas">Voltar</button>
-  </section>
-
-  <!-- Perfil -->
-  <section class="screen" id="s-perfil" hidden>
-    <div class="progress"></div>
-    <div class="screen-head">
-      <h2>Qual é o seu curso?</h2>
+<!-- Popup: curso (só para quem não está na lista da Mentoria) -->
+<div class="modal" id="perfilModal" role="dialog" aria-modal="true" aria-labelledby="perfilTitle" hidden>
+  <div class="modal-box">
+    <div class="block">
+      <h2 id="perfilTitle">Qual é o seu curso?</h2>
       <p class="muted">Assim a gente mostra a regra de frequência certa para você.</p>
     </div>
     <div class="options">
@@ -584,73 +626,8 @@ body.modal-open { overflow: hidden; }
         <span><span class="t">Sou aluno de outros cursos</span><span class="d">Método Tia do Inglês e demais cursos</span></span><span class="arrow" aria-hidden="true">›</span>
       </button>
     </div>
-    <button class="link" type="button" data-go="s-entrada">Voltar e corrigir meus dados</button>
-  </section>
-
-  <!-- Horário -->
-  <section class="screen" id="s-horario" hidden>
-    <div class="progress"></div>
-    <div class="screen-head">
-      <h2>Escolha o dia e o horário</h2>
-      <p class="muted" id="nivelLabel"></p>
-    </div>
-    <div class="slots" id="slots"></div>
-    <button class="link" type="button" data-go="s-arenas">Trocar de Arena</button>
-  </section>
-
-  <!-- Antes e durante -->
-  <section class="screen" id="s-antes" hidden>
-    <div class="progress"></div>
-    <div class="screen-head">
-      <h2>Confirme a sua escolha</h2>
-    </div>
-    <div class="summary">
-      <span class="muted small">Você escolheu</span>
-      <strong id="chosenText"></strong>
-    </div>
-    <p class="form-error" id="goError" role="alert"></p>
-    <div class="actions">
-      <button class="btn" type="button" id="goBtn">Confirmar minha inscrição</button>
-      <p class="muted small" style="text-align:center">Você vai receber no seu e-mail o convite com o link da sala.</p>
-    </div>
-    <button class="link" type="button" data-go="s-horario">Trocar horário</button>
-  </section>
-
-  <!-- Parabéns: tudo na primeira dobra (computador: detalhes e material lado a lado) -->
-  <section class="screen" id="s-fim" hidden>
-    <div class="screen-head fim-head">
-      <span class="kicker" id="fimKicker">Inscrição confirmada</span>
-      <h1>PARABÉNS!</h1>
-      <p id="fimTexto"></p>
-    </div>
-    <div class="fim-grid">
-      <div class="detalhes" id="fimDetalhes">
-        <span class="detalhes-kicker">Detalhes da sua Arena</span>
-        <dl>
-          <div><dt>Arena</dt><dd id="fimArena"></dd></div>
-          <div><dt>Dia</dt><dd id="fimDia"></dd></div>
-          <div><dt>Horário</dt><dd id="fimHora"></dd></div>
-          <div class="fim-link"><dt>Link da sala</dt><dd id="fimLinkTxt" class="detalhes-link"></dd></div>
-        </dl>
-        <button class="btn detalhes-btn" type="button" id="fimCopiar">COPIAR LINK</button>
-      </div>
-      <div class="material-destaque">
-        <div class="material-icone" aria-hidden="true">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-        </div>
-        <span class="material-kicker">Passo obrigatório</span>
-        <h2>Material da sua Arena</h2>
-        <p>Baixe agora e estude o conteúdo antes da Arena.</p>
-        <a class="btn material-btn" id="materialBtn" href="#" target="_blank" rel="noopener">APERTE AQUI E BAIXE SEU MATERIAL</a>
-      </div>
-    </div>
-    <button class="link" type="button" data-go="s-arenas">Voltar ao início</button>
-  </section>
-
-  <footer class="foot" id="foot" hidden>
-    <button class="link" type="button" id="openInfo">Como funciona</button>
-    <button class="link" type="button" id="openFaq">Dúvidas frequentes</button>
-  </footer>
+    <button class="link" type="button" id="perfilVoltar">Voltar e corrigir meus dados</button>
+  </div>
 </div>
 
 <!-- Popup: instruções da Arena (vídeo + checklist) -->
@@ -846,9 +823,8 @@ let aluna = null;     // { nome, email, whatsapp, site }
 let selected = null;  // nível
 
 // ---------- Navegação entre telas ----------
-const TELAS = ["s-entrada", "s-arenas", "s-labs", "s-perfil", "s-horario", "s-antes", "s-fim"];
-let mentorada = false; // e-mail encontrado na lista da Mentoria: pula a escolha de curso e vê o Fluent Labs
-let praticas = [];      // Fluent Labs: só chegam do Apps Script para quem está na lista
+const TELAS = ["s-arenas", "s-horario", "s-fim"];
+let mentorada = false; // e-mail encontrado na lista da Mentoria: pula a escolha de curso
 let escolha = null;     // { a, d } Arena e data escolhidas
 // Histórico das telas do sistema para o botão VOLTAR (na primeira tela, VOLTAR leva ao HOME da Cademí)
 const HOME_URL = "https://alunos.tiadoingles.com.br/area/vitrine/home";
@@ -858,8 +834,8 @@ function show(id, voltando) {
   telaAtual = id;
   TELAS.forEach(t => { $(t).hidden = t !== id; });
   document.querySelector(".page").classList.toggle("wide", id === "s-arenas" || id === "s-fim");
-  // Passos: mentorada = Arena → horário → confirmação; demais = Arena → curso → horário → confirmação
-  const passos = mentorada ? ["s-arenas", "s-horario", "s-antes"] : ["s-arenas", "s-perfil", "s-horario", "s-antes"];
+  // Passos: Arena → horário (os dados vêm no popup) → link e material
+  const passos = ["s-arenas", "s-horario", "s-fim"];
   const prog = $(id).querySelector(".progress"), i = passos.indexOf(id);
   if (prog && i > -1) {
     prog.innerHTML = '<span>Passo ' + (i + 1) + ' de ' + passos.length + '</span><div class="bar"><span></span></div>';
@@ -1007,25 +983,20 @@ $("startForm").addEventListener("submit", async e => {
   if (pais.iso !== "BR" && (numero.length < 6 || numero.length > 14)) { err.textContent = "Confira o número do WhatsApp (sem o código do país)."; $("fWhats").focus(); return; }
   aluna = { nome, email, whatsapp, ddi: pais.ddi, pais: pais.iso, site: $("fSite").value, sessao: novaSessao(), acesso: ACESSO, dispositivo: DISPOSITIVO };
   salvar({ nome, email, ddiIso: pais.iso, numero: $("fWhats").value });
-  document.querySelectorAll(".helloName").forEach(el => { el.textContent = nome.split(" ")[0]; });
-  // Confere o e-mail na lista da Mentoria (se achar, a planilha grava como "Mentoria")
+  // Confere o e-mail na lista da Mentoria (se achar, a planilha grava como "Mentoria" e já inscreve)
   const btn = $("startBtn");
   btn.disabled = true; btn.textContent = "Conferindo seus dados…";
   const res = await enviar({ tipo: "mentoria" });
-  btn.disabled = false; btn.textContent = "Iniciar";
+  btn.disabled = false; btn.textContent = "Confirmar minha inscrição";
   mentorada = !!(res && res.encontrada === true);
-  praticas = mentorada && res && Array.isArray(res.praticas) ? res.praticas.filter(l => l && l.tipo === "Fluent Labs") : []; // só Fluent Labs aparece nesta página
-  $("labsBlock").hidden = !praticas.length;
-  $("arenasLabel").hidden = !mentorada;
-  $("s-arenas").classList.toggle("is-mentorada", mentorada);
-  $("arenasTitle").textContent = mentorada ? "Escolha a sua prática" : "Escolha a sua Arena";
-  $("arenasSub").textContent = mentorada
-    ? "Você é da Mentoria Fluent Mind: escolha uma Arena de Conversação ou o Fluent Labs."
-    : "Escolha a sua Arena para ver as instruções e fazer a sua inscrição.";
-  show("s-arenas");
+  closeModal($("dadosModal"));
+  if (mentorada) inscrever();
+  else openModal($("perfilModal"));
 });
+$("dadosVoltar").addEventListener("click", () => closeModal($("dadosModal")));
+$("perfilVoltar").addEventListener("click", () => { closeModal($("perfilModal")); abrirDados(); });
 
-// Para a planilha (aba Inscrições): cada "Iniciar" é uma sessão; de onde a aluna veio e em qual aparelho.
+// Para a planilha (aba Inscrições): cada envio dos dados é uma sessão; de onde a aluna veio e em qual aparelho.
 function novaSessao() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 const ACESSO = (() => {
   if (window.self === window.top) return "direto";
@@ -1058,10 +1029,10 @@ function ocupado(sim) {
   ["optMentoria", "optBlack", "optOutros"].forEach(id => { $(id).disabled = sim; });
 }
 
+// Curso definido: inscreve na Arena escolhida
 function seguirParaNivel() {
-  renderSlots();
-  show("s-horario");
-  openModal($("infoModal"));
+  closeModal($("perfilModal"));
+  inscrever();
 }
 
 async function escolherOutros() {
@@ -1115,7 +1086,8 @@ $("weekDone").addEventListener("click", () => {
 });
 $("weekClose").addEventListener("click", () => {
   closeModal($("weekModal"));
-  show("s-entrada");
+  closeModal($("perfilModal"));
+  show("s-arenas");
 });
 
 $("optMentoria").addEventListener("click", async () => {
@@ -1142,7 +1114,8 @@ $("confirmYes").addEventListener("click", async () => {
 });
 $("confirmFix").addEventListener("click", () => {
   closeModal($("confirmModal"));
-  show("s-entrada");
+  closeModal($("perfilModal"));
+  abrirDados();
   $("fEmail").focus();
 });
 $("confirmOther").addEventListener("click", () => {
@@ -1255,8 +1228,8 @@ $("arenaGo").addEventListener("click", () => {
   }
   selected = arenaAberta;
   fecharArena();
-  if (mentorada) seguirParaNivel(); // já é da Mentoria: vai direto aos horários
-  else show("s-perfil");
+  renderSlots();
+  show("s-horario");
 });
 $("arenaBack").addEventListener("click", fecharArena);
 
@@ -1270,19 +1243,7 @@ function avisoFeriado(nome, d) {
   return p;
 }
 
-// ---------- Fluent Labs ----------
-// O próximo horário fica em destaque no topo. "ENTRAR NA SALA" só aparece de 5 min antes até 5 min depois
-// do início; fora disso, "COPIAR LINK" copia o link da sala e mostra o aviso para salvar.
-const JANELA = 5 * 60000;
-const ANTES_AO_VIVO = 10 * 60000; // destaque AO VIVO a partir de 10 min antes do início
-function proximaLab(l) {
-  const now = new Date(), [h, m] = l.hora.split(":").map(Number);
-  const d = new Date(now);
-  d.setHours(h, m, 0, 0);
-  d.setDate(now.getDate() + (l.dia - now.getDay() + 7) % 7);
-  if (d.getTime() + JANELA < now.getTime()) d.setDate(d.getDate() + 7); // já passou dos 5 min de tolerância
-  return d;
-}
+// ---------- Avisos e cópia do link ----------
 // Copia o link da sala e mostra por 3 s: "SALVE EM UM LOCAL SEGURO"
 let toastTimer = null;
 function avisar(msg, extra, ms) {
@@ -1293,7 +1254,6 @@ function avisar(msg, extra, ms) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.hidden = true; }, ms || 3000);
 }
-const AVISO_LINK_LABS = "Salve esse link em local seguro para entrar no horário";
 // Dentro de iframe (ex.: Cademí) a cópia automática costuma ser bloqueada e window.prompt também.
 // Tenta: 1) Clipboard API  2) execCommand("copy")  3) mostra o link no próprio aviso para copiar à mão.
 function copiaAntiga(texto) {
@@ -1315,57 +1275,6 @@ async function copiarComAviso(link, msg) {
   else avisar(aviso + ". Copie o link:", link, 8000); // não deu para copiar sozinho: mostra o link por mais tempo
 }
 
-function renderLabs() {
-  const box = $("labsSlots"), now = Date.now();
-  box.innerHTML = "";
-  const lista = praticas.map(l => ({ l, d: proximaLab(l) })).sort((x, y) => x.d - y.d);
-  const primeiro = lista.findIndex(x => !feriado(x.d));
-  lista.forEach(({ l, d }, i) => {
-    if (i === 1) {
-      const p = document.createElement("p");
-      p.className = "group-label";
-      p.textContent = "Demais dias e horários";
-      box.appendChild(p);
-    }
-    const fer = feriado(d);
-    if (fer) box.appendChild(avisoFeriado(fer, d));
-    const aberta = !fer && Math.abs(d.getTime() - now) <= JANELA;
-    // AO VIVO: de 10 min antes até 5 min depois do início (depois disso o horário vai para a próxima semana)
-    const aoVivo = !fer && d.getTime() - now <= ANTES_AO_VIVO && now - d.getTime() <= JANELA;
-    const faltamMin = Math.ceil((d.getTime() - now) / 60000);
-    const tag = aoVivo ? (faltamMin > 0 ? "Começa em " + faltamMin + " min" : "Acontecendo agora") : (aberta ? "Acontecendo agora" : "Próximo horário");
-    const row = document.createElement("div");
-    row.className = "slot labs-slot" + (i === primeiro ? " featured" : "") + (aoVivo ? " ao-vivo" : "") + (fer ? " cancelado" : "");
-    row.innerHTML = (aoVivo ? '<span class="ao-vivo-badge">AO VIVO</span>' : '') + '<span class="hora"></span><span>' +
-      (i === primeiro || aoVivo ? '<span class="tag">' + tag + '</span>' : '') +
-      '<span class="lab-tipo"></span><span class="when"></span></span>';
-    row.querySelector(".hora").textContent = l.hora;
-    row.querySelector(".lab-tipo").textContent = l.tipo;
-    row.querySelector(".when").textContent = whenLabel(d);
-    if (!fer) {
-      let btn;
-      if (aberta) {
-        btn = document.createElement("a");
-        btn.className = "lab-btn entrar"; btn.href = l.link; btn.target = "_blank"; btn.rel = "noopener";
-        btn.textContent = "ENTRAR NA SALA";
-        btn.addEventListener("click", () => registrarLink("entrou", l.tipo, d));
-      } else {
-        btn = document.createElement("button");
-        btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
-        btn.addEventListener("click", () => { copiarComAviso(l.link, AVISO_LINK_LABS); registrarLink("copiou", l.tipo, d); });
-      }
-      btn.setAttribute("aria-label", btn.textContent + ": " + l.tipo + ", " + whenLabel(d) + " às " + l.hora);
-      row.appendChild(btn);
-    }
-    box.appendChild(row);
-  });
-}
-$("openLabs").addEventListener("click", () => { renderLabs(); show("s-labs"); });
-// Atualiza os botões sozinho enquanto a aluna está na tela (ex.: abre a sala quando chegar a hora)
-setInterval(() => {
-  if (document.querySelector(".lab-btn.pegar:focus")) return;
-  if (!$("s-labs").hidden) renderLabs();
-}, 20000);
 
 // ---------- Horários ----------
 function nextOccurrence(a) {
@@ -1421,9 +1330,8 @@ function renderSlots() {
       if (fer) b.disabled = true;
       else b.addEventListener("click", () => {
         escolha = { a, d };
-        $("chosenText").textContent = whenLabel(d) + ", " + a.hora + " · " + n.nome;
-        $("goError").textContent = "";
-        show("s-antes");
+        $("chosenText").textContent = "Arena " + n.nome + " · " + whenLabel(d) + ", " + a.hora;
+        abrirDados();
       });
       box.appendChild(b);
     });
@@ -1432,17 +1340,24 @@ function renderSlots() {
 // ---------- Confirmação e Parabéns ----------
 // Adiciona a aluna como participante do evento da Arena na agenda dos tutores (Apps Script);
 // ela recebe o convite com o link do Google Meet. Esta aba mostra o Parabéns com o material e o link.
-$("goBtn").addEventListener("click", async () => {
-  const { a, d } = escolha, btn = $("goBtn");
-  btn.disabled = true; btn.textContent = "Confirmando a sua inscrição…";
-  $("goError").textContent = "";
+function abrirDados() {
+  $("formError").textContent = "";
+  openModal($("dadosModal"));
+  $("fNome").focus({ preventScroll: true });
+}
+async function inscrever() {
+  const { a, d } = escolha;
+  avisar("Confirmando a sua inscrição…", null, 20000);
   const res = a.meet ? await enviar({ tipo: "inscricao", nivel: selected, inicio: d.toISOString() }) : null;
-  btn.disabled = false; btn.textContent = "Confirmar minha inscrição";
-  if (res && res.feriado) { $("goError").textContent = "Esta data é feriado nacional e a Arena foi cancelada. Escolha outro horário."; return; }
-  if (res && res.lotada) { $("goError").textContent = "Esta Arena já está lotada. Escolha outro horário."; return; }
+  $("toast").hidden = true;
+  if (res && res.feriado) { avisar("Esta data é feriado nacional e a Arena foi cancelada. Escolha outro horário.", null, 6000); return; }
+  if (res && res.lotada) { avisar("Esta Arena já está lotada. Escolha outro horário.", null, 6000); return; }
   const link = (res && res.link) || a.meet || a.zoom;
   const nome = CONFIG.niveis[selected].nome, quando = whenLabel(d) + ", " + a.hora;
-  if (res && res.ok && "link" in res) { // "link" só vem do Apps Script novo, que de fato inscreve na agenda
+  const naAgenda = !!(res && res.ok && "link" in res); // "link" só vem do Apps Script, que de fato inscreve na agenda
+  $("fimAgenda").hidden = !naAgenda;
+  $("fimAgenda").textContent = "Este evento foi inserido na sua agenda. O convite foi enviado para " + aluna.email + ".";
+  if (naAgenda) {
     $("fimKicker").textContent = "Inscrição confirmada";
     $("fimTexto").textContent = "Você está inscrita na Arena " + nome + ". O convite com o link da sala foi enviado para " + aluna.email + ".";
   } else if (!a.meet) {
@@ -1458,9 +1373,10 @@ $("goBtn").addEventListener("click", async () => {
   $("fimLinkTxt").textContent = link;
   $("fimCopiar").onclick = () => { copiarComAviso(link); registrarLink("copiou", "Arena " + nome, d); };
   $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
-  show("s-fim");
-  if (res && res.ok && "link" in res) openModal($("fimModal")); // inscrição confirmada: aviso antes do link e do material
-});
+  historico = ["s-arenas"]; // depois de inscrita, VOLTAR leva ao começo
+  show("s-fim", true);
+  if (naAgenda) openModal($("fimModal")); // inscrição confirmada: aviso antes do link e do material
+}
 $("fimEntendido").addEventListener("click", () => { closeModal($("fimModal")); window.scrollTo(0, 0); });
 
 // ---------- Popups ----------
@@ -1470,12 +1386,12 @@ $("openFaq").addEventListener("click", () => openModal($("faqModal")));
 $("closeFaq").addEventListener("click", () => closeModal($("faqModal")));
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
-  ["infoModal", "faqModal", "blackModal", "fimModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
+  ["infoModal", "faqModal", "blackModal", "fimModal", "dadosModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
   if (!$("arenaModal").hidden) fecharArena();
 });
 
 $("foot").hidden = false;
-show("s-entrada");
+show("s-arenas");
 </script>
 </body>
 </html>
