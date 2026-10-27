@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<base href="../">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Práticas · Fluent Mind Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: uma tela por passo, coluna única estreita (máx. 560px) para leitura confortável.
+   Cores mantidas (fundo escuro + verde-água); menos brilho, sem caixa alta longa, mais respiro. */
+:root {
+  --bg: #080c0d;
+  --surface: #10181a;
+  --surface-hover: #152124;
+  --fg: #f1f6f5;
+  --text: #d5e0de;
+  --muted: #a3b4b1;
+  --line: #22302f;
+  --accent: #2ee6c2;
+  --accent-soft: rgba(46, 230, 194, .10);
+  --accent-line: rgba(46, 230, 194, .35);
+  --on-accent: #04110e;
+  --danger: #ff8a96;
+  --warn: #ffb547;
+  --lv-rc: #ffb86b;
+  --lv-ba: #ff8aa5;
+  --lv-in: #b9a2ff;
+  --lv-av: #2ee6c2;
+  --font: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 14px;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding-inline: 20px; padding-block: 0 120px;
+  background: radial-gradient(70% 40% at 50% 0%, rgba(46, 230, 194, .09), transparent 70%), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font); font-size: 1.0625rem; line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { color: var(--fg); font-weight: 800; line-height: 1.25; letter-spacing: -.01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.7rem, 6vw, 2.2rem); }
+h2 { font-size: clamp(1.4rem, 5vw, 1.7rem); }
+h3 { font-size: 1.05rem; }
+p { margin: 0; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.accent { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: .95rem; }
+
+.page { max-width: 560px; margin: 0 auto; }
+.screen { padding-top: 56px; display: flex; flex-direction: column; gap: 28px; }
+/* Dentro de iframe (página incorporada na Cademí): menos respiro no topo e no fim */
+body.embed { padding-bottom: 72px; }
+.embed .screen { padding-top: 20px; }
+/* Barra fixa no topo: HOME (Cademí) e VOLTAR (tela anterior do sistema) */
+.topbar {
+  position: sticky; top: 0; z-index: 40; display: flex; gap: 8px; align-items: center;
+  margin-inline: -20px; padding: 12px 20px; background: rgba(8, 12, 13, .88);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+}
+.topbar-btn {
+  display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .88rem; font-weight: 800; letter-spacing: .02em;
+  color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
+  cursor: pointer; text-decoration: none;
+}
+.topbar-btn:hover { border-color: var(--accent-line); color: var(--accent); }
+/* Quadro da Cademí que cresce sozinho (iframe-resizer): a barra acompanha a parte visível */
+.resizer .topbar { position: fixed; left: 0; right: 0; top: var(--vis-top, 0px); margin: 0; }
+.resizer body { padding-top: 58px; }
+/* No quadro da Cademí o iframe cresce até o tamanho da página: "fixo" passaria a ser o quadro inteiro.
+   --vis-top / --vis-h = parte do quadro visível na tela (vem do iframe-resizer). */
+.embed .modal { inset: auto 0 auto 0; top: var(--vis-top, 0px); height: var(--vis-h, 100vh); }
+.embed .arena-box { max-height: calc(var(--vis-h, 100vh) - 24px); }
+.embed .toast { bottom: auto; top: calc(var(--vis-top, 0px) + var(--vis-h, 100vh) - 150px); }
+.toast-link { display: block; margin-top: 6px; font-weight: 700; word-break: break-all; user-select: all; -webkit-user-select: all; }
+.screen-head { display: flex; flex-direction: column; gap: 10px; }
+.kicker { font-size: .9rem; font-weight: 700; color: var(--accent); }
+
+/* Progresso */
+.progress { display: flex; align-items: center; gap: 12px; font-size: .9rem; color: var(--muted); }
+.bar { flex: 1; height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s; }
+
+/* Botões */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 56px; padding: 14px 24px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--accent); color: var(--on-accent);
+  font: inherit; font-size: 1.05rem; font-weight: 800; text-decoration: none;
+  transition: filter .15s, transform .15s;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(.99); }
+.btn[disabled] { opacity: .6; cursor: wait; }
+.btn-outline { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.btn-outline:hover { border-color: var(--accent-line); filter: none; }
+.link { font: inherit; font-size: .95rem; font-weight: 700; color: var(--muted); background: none; border: 0; padding: 6px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; align-self: flex-start; }
+.link:hover { color: var(--fg); }
+
+/* Formulário */
+.form { display: flex; flex-direction: column; gap: 18px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: .95rem; font-weight: 700; color: var(--fg); }
+.field input {
+  width: 100%; font: inherit; font-size: 1.05rem; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px 16px; transition: border-color .15s;
+}
+.field input::placeholder { color: #6f817e; }
+/* WhatsApp com DDI selecionável */
+.tel { position: relative; display: flex; gap: 8px; }
+.tel input#fWhats { flex: 1; min-width: 0; }
+.ddi-btn {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; font: inherit; font-size: 1.05rem; font-weight: 700; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 0 12px; cursor: pointer;
+}
+.ddi-btn:hover, .ddi-btn[aria-expanded="true"] { border-color: var(--accent); }
+.ddi-flag { font-size: 1.3rem; line-height: 1; }
+.ddi-seta { color: var(--muted); font-size: .85rem; }
+.ddi-lista {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30;
+  background: var(--surface); border: 1px solid var(--accent-line); border-radius: var(--radius);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55); padding: 10px; display: flex; flex-direction: column; gap: 8px;
+}
+.ddi-lista input { width: 100%; font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.ddi-lista input:focus { outline: none; border-color: var(--accent); }
+.ddi-lista ul { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; overscroll-behavior: contain; }
+.ddi-lista li { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--fg); }
+.ddi-lista li:hover, .ddi-lista li.ativo { background: var(--accent-soft); }
+.ddi-lista li .cod { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ddi-lista li .flag { font-size: 1.2rem; }
+.ddi-lista .vazio { color: var(--muted); cursor: default; }
+.field input:focus { outline: none; border-color: var(--accent); }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-error { color: var(--danger); font-weight: 700; font-size: .95rem; }
+.form-error:empty { display: none; }
+
+/* Opções (perfil e nível) */
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  font: inherit; text-align: left; color: var(--fg); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px 18px; transition: border-color .15s, background .15s;
+}
+.option:hover { border-color: var(--accent-line); background: var(--surface-hover); }
+.option[disabled] { opacity: .6; cursor: wait; }
+.option .t { font-weight: 800; font-size: 1.05rem; display: block; }
+.option .d { color: var(--muted); font-size: .95rem; display: block; }
+.option .d:empty { display: none; } /* vazio = sem subtítulo (só aparece o "Conferindo…") */
+.option .arrow { margin-left: auto; color: var(--muted); font-size: 1.3rem; line-height: 1; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--accent)); flex: none; }
+.lv-rc { --c: var(--lv-rc); } .lv-ba { --c: var(--lv-ba); } .lv-in { --c: var(--lv-in); } .lv-av { --c: var(--lv-av); }
+
+/* Horários */
+.slots { display: flex; flex-direction: column; gap: 10px; }
+.slot {
+  display: flex; align-items: center; gap: 16px; width: 100%;
+  font: inherit; text-align: left; color: var(--fg); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 18px; transition: border-color .15s, background .15s;
+}
+.slot:hover { border-color: var(--accent-line); background: var(--surface-hover); }
+.slot .hora { font-size: 1.35rem; font-weight: 800; min-width: 52px; font-variant-numeric: tabular-nums; }
+.slot .when { display: block; font-weight: 700; }
+.slot .arrow { margin-left: auto; color: var(--muted); font-size: 1.3rem; }
+.slot.featured { border-color: var(--accent-line); background: var(--accent-soft); padding: 22px 18px; }
+.slot.featured .hora { font-size: 1.8rem; color: var(--accent); }
+.tag { display: inline-block; font-size: .78rem; font-weight: 800; color: var(--on-accent); background: var(--accent); border-radius: 999px; padding: 1px 10px; margin-bottom: 4px; }
+.group-label { font-size: .9rem; font-weight: 700; color: var(--muted); margin-top: 10px; }
+
+/* Antes e durante */
+.summary { background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--radius); padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; }
+.summary strong { color: var(--fg); font-size: 1.1rem; }
+.block { display: flex; flex-direction: column; gap: 12px; }
+.checks { display: flex; flex-direction: column; gap: 10px; }
+.checks label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.checks input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; margin-top: 4px; }
+.checks input:checked + span { color: var(--muted); text-decoration: line-through; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.list li { padding-left: 22px; position: relative; }
+.list li::before { content: ""; position: absolute; left: 4px; top: .7em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+/* Rodapé */
+.foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: flex-start; padding-right: 130px; }
+.foot .link { align-self: auto; }
+
+/* Popups */
+.modal {
+  position: fixed; inset: 0; z-index: 50; background: rgba(4, 7, 8, .78);
+  display: flex; align-items: flex-start; justify-content: center; overflow-y: auto;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+}
+.modal-box {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+  width: 100%; max-width: 540px; margin: auto; padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 22px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
+}
+.modal-box .block { gap: 8px; }
+.note { background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: 12px 14px; color: var(--fg); font-weight: 600; }
+.freq { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.freq div { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.freq b { display: block; color: var(--accent); font-size: 1.25rem; }
+.freq span { display: block; font-size: .95rem; color: var(--muted); }
+@media (max-width: 460px) { .freq { grid-template-columns: 1fr; } }
+.actions { display: flex; flex-direction: column; gap: 10px; }
+details { border-bottom: 1px solid var(--line); }
+summary { cursor: pointer; font-weight: 700; color: var(--fg); padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--accent); font-size: 1.3rem; line-height: 1; }
+details[open] summary::after { content: "–"; }
+details p { padding-bottom: 14px; color: var(--muted); }
+body.modal-open { overflow: hidden; }
+.modal-box.alerta { border-color: rgba(255, 181, 71, .55); }
+.alert-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 181, 71, .14); color: var(--warn); }
+
+/* Tela inicial: 4 Arenas */
+.page.wide { max-width: 1080px; }
+.arenas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.arena {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: var(--radius);
+  transition: border-color .15s, transform .15s;
+}
+.arena:hover { border-color: var(--c); }
+.arena img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.arena-body { display: flex; flex-direction: column; gap: 6px; padding: 18px 18px 20px; flex: 1; }
+.arena-body h3 { font-size: 1.25rem; color: var(--c); }
+.arena-body p { color: var(--muted); font-size: .95rem; flex: 1; }
+.arena .btn { margin-top: 10px; min-height: 50px; background: var(--c); }
+@media (max-width: 760px) {
+  .arenas { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .arena-body { padding: 14px 12px 14px; }
+  .arena-body h3 { font-size: 1.05rem; }
+  .arena-body p { font-size: .85rem; line-height: 1.5; }
+  .arena .btn { font-size: .9rem; min-height: 44px; padding: 10px 12px; }
+}
+/* Popup da Arena: sempre do tamanho da tela; rola por dentro se não couber.
+   Em telas largas, vídeo à esquerda e checklist à direita para caber sem rolar. */
+#arenaModal { align-items: center; overflow: hidden; padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+.arena-box {
+  max-width: 560px; margin: 0; padding: 22px 20px; gap: 18px;
+  max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.arena-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.arena-box .checks { gap: 4px; }
+.arena-box .checks label { padding: 8px 10px; line-height: 1.45; font-size: 1rem; }
+.arena-box .checks input { margin-top: 2px; }
+.arena-box .actions .btn { min-height: 50px; }
+@media (min-width: 900px) {
+  .arena-box { max-width: 1020px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; padding: 28px; align-items: start; }
+}
+@media (max-height: 700px) and (min-width: 900px) {
+  .arena-box { padding: 20px; }
+  .arena-box .checks label { padding: 5px 10px; font-size: .95rem; }
+}
+/* Demonstração do checklist */
+#arenaChecks { position: relative; }
+#arenaChecks.demo label { pointer-events: none; }
+.demo-cursor { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; transition: transform .35s ease-in-out; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .6)); }
+.demo-cursor svg { display: block; position: relative; }
+.demo-cursor.click svg { animation: demo-click .25s ease; }
+.demo-cursor .ripple { position: absolute; left: -9px; top: -9px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; }
+.demo-cursor.click .ripple { animation: demo-ripple .4s ease-out; }
+@keyframes demo-click { 50% { transform: scale(.8); } }
+@keyframes demo-ripple { from { opacity: .9; transform: scale(.4); } to { opacity: 0; transform: scale(1.6); } }
+.detalhes {
+  display: flex; flex-direction: column; gap: 14px; padding: 20px;
+  background: rgba(255, 200, 87, .1); border: 2px solid #ffc857; border-radius: var(--radius);
+}
+.detalhes-kicker { font-size: .85rem; font-weight: 800; color: #ffc857; letter-spacing: .02em; text-transform: uppercase; }
+.detalhes dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+.detalhes dl div:last-child { grid-column: 1 / -1; }
+.detalhes dt { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.detalhes dd { margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--fg); }
+.detalhes .detalhes-link { font-size: 1rem; color: #ffc857; word-break: break-all; }
+.detalhes-btn { background: #ffc857; color: #1a1405; }
+/* 1ª tela no celular: as 4 Arenas na primeira dobra */
+@media (max-width: 640px) {
+  #s-arenas { padding-top: 16px; gap: 14px; }
+  #s-arenas .progress { display: none; }
+  #s-arenas .screen-head { gap: 4px; }
+  #s-arenas h1 { font-size: 1.35rem; }
+  #s-arenas .screen-head .muted { font-size: .9rem; line-height: 1.4; }
+  #s-arenas .arena img { aspect-ratio: 5 / 2; }
+}
+/* Link da Mentoria no celular: Arenas + faixa do Fluent Labs na primeira dobra */
+@media (max-width: 640px) {
+  #s-arenas.is-mentorada .praticas { gap: 12px; }
+  #s-arenas.is-mentorada .panel-arenas { padding: 0; border: 0; background: none; }
+  #s-arenas.is-mentorada .panel-arenas .panel-head { display: none; }
+  #s-arenas.is-mentorada .panel-labs { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; }
+  #s-arenas.is-mentorada .panel-labs img, #s-arenas.is-mentorada .panel-labs p { display: none; }
+  #s-arenas.is-mentorada .panel-labs .panel-head h3 { font-size: 1.1rem; }
+  #s-arenas.is-mentorada .panel-labs .btn { width: auto; min-height: 40px; padding: 8px 16px; font-size: .9rem; white-space: nowrap; }
+  #s-arenas.is-mentorada .panel-labs .panel-kicker { display: none; }
+  #s-arenas.is-mentorada .arena img { aspect-ratio: 3 / 1; }
+}
+.agenda-aviso { margin: 0; font-size: .9rem; font-weight: 700; color: var(--fg); line-height: 1.45; }
+.agenda-aviso::before { content: "✓ "; color: #ffc857; }
+#dadosModal .modal-box { gap: 16px; }
+#dadosModal .form { gap: 14px; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  background: #ffc857; color: #1a1405; font-weight: 800; padding: 14px 22px; border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5); text-align: center; width: max-content; max-width: min(460px, calc(100vw - 32px));
+}
+@media (max-width: 400px) { .detalhes dl { grid-template-columns: 1fr; } .toast { white-space: normal; text-align: center; } }
+.aviso-feriado { display: flex; gap: 8px; align-items: flex-start; font-size: .9rem; font-weight: 700; color: var(--warn); background: rgba(255, 181, 71, .1); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 8px 12px; margin-bottom: -4px; }
+.slot.cancelado { opacity: .55; cursor: not-allowed; text-decoration: line-through; }
+.slot.cancelado:hover { background: var(--surface); border-color: var(--line); }
+.lab-tipo { display: block; font-size: .8rem; font-weight: 800; color: var(--muted); }
+.aviso-video { text-align: center; font-weight: 800; font-size: 1.05rem; color: var(--warn); background: rgba(255, 181, 71, .12); border: 1px solid rgba(255, 181, 71, .45); border-radius: 10px; padding: 10px 14px; margin: 0; }
+/* Material em destaque na tela final */
+.material-destaque {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+  padding: 28px 22px; border-radius: 18px; border: 2px solid var(--accent);
+  background: linear-gradient(160deg, rgba(46, 230, 194, .22), rgba(46, 230, 194, .06));
+  box-shadow: 0 0 0 0 rgba(46, 230, 194, .45); animation: brilho-material 2.4s ease-out infinite;
+}
+.material-icone { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+.material-kicker { font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.material-destaque h2 { font-size: clamp(1.5rem, 5vw, 1.9rem); }
+.material-destaque p { color: var(--text); }
+.material-btn { margin-top: 6px; min-height: 62px; font-size: 1.1rem; letter-spacing: .01em; box-shadow: 0 10px 28px rgba(46, 230, 194, .3); }
+@keyframes brilho-material { 0% { box-shadow: 0 0 0 0 rgba(46, 230, 194, .45); } 70%, 100% { box-shadow: 0 0 0 16px rgba(46, 230, 194, 0); } }
+@media (prefers-reduced-motion: reduce) { .material-destaque { animation: none; } }
+/* Popup de inscrição confirmada */
+.confirma-icone { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+/* Mentoradas: dois blocos com tons diferentes — Arenas (azul) e Fluent Labs (dourado) */
+.praticas { display: flex; flex-direction: column; gap: 20px; }
+.panel-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
+.panel-head h3 { font-size: 1.45rem; }
+.panel-kicker { font-size: .85rem; font-weight: 800; letter-spacing: .02em; color: var(--tone); }
+.is-mentorada .praticas { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch; }
+.is-mentorada .panel { border-radius: 20px; padding: 22px; border: 1px solid var(--tone-line); background: var(--tone-soft); }
+.is-mentorada .panel-arenas { --tone: #7aa2ff; --tone-line: rgba(122, 162, 255, .35); --tone-soft: rgba(122, 162, 255, .07); }
+.is-mentorada .panel-arenas .arenas { grid-template-columns: 1fr 1fr; }
+.panel-labs { --tone: #ffc857; --tone-line: rgba(255, 200, 87, .45); --tone-soft: rgba(255, 200, 87, .08); display: flex; flex-direction: column; gap: 14px; }
+.panel-labs .panel-head { margin-bottom: 0; }
+.panel-labs h3 { color: var(--tone); }
+.panel-labs img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); }
+.panel-labs p { color: var(--text); }
+.panel-labs .btn { background: var(--tone); color: #1a1405; }
+@media (max-width: 900px) {
+  .is-mentorada .praticas { grid-template-columns: 1fr; }
+  .is-mentorada .panel { padding: 16px; }
+}
+@media (max-width: 460px) {
+  .is-mentorada .panel { padding: 12px; border-radius: 16px; }
+  .is-mentorada .panel-arenas .arenas { gap: 10px; }
+}
+.labs-slot { cursor: default; flex-wrap: wrap; position: relative; }
+/* AO VIVO: borda verde piscando + selo vermelho no canto (10 min antes até 5 min depois) */
+.labs-slot.ao-vivo { border: 2px solid var(--accent); background: var(--accent-soft); animation: piscar-borda 1.1s ease-in-out infinite; }
+.labs-slot.ao-vivo:hover { border-color: var(--accent); background: var(--accent-soft); }
+@keyframes piscar-borda {
+  0%, 100% { border-color: var(--accent); box-shadow: 0 0 22px rgba(46, 230, 194, .45); }
+  50% { border-color: rgba(46, 230, 194, .12); box-shadow: 0 0 0 rgba(46, 230, 194, 0); }
+}
+.ao-vivo-badge {
+  position: absolute; top: -11px; right: 14px; display: inline-flex; align-items: center; gap: 6px;
+  background: #e5252a; color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .08em;
+  padding: 3px 10px 3px 8px; border-radius: 999px; box-shadow: 0 4px 12px rgba(229, 37, 42, .45);
+}
+.ao-vivo-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: pulsar-ponto 1s ease-in-out infinite; }
+@keyframes pulsar-ponto { 50% { opacity: .25; transform: scale(.7); } }
+@media (prefers-reduced-motion: reduce) { .labs-slot.ao-vivo, .ao-vivo-badge::before { animation: none; } }
+.labs-slot:hover { background: var(--surface); border-color: var(--line); }
+.labs-slot.featured:hover { background: var(--accent-soft); border-color: var(--accent-line); }
+.lab-btn {
+  margin-left: auto; font: inherit; font-size: .9rem; font-weight: 800; white-space: nowrap; cursor: pointer; text-decoration: none;
+  border-radius: 999px; padding: 10px 18px; border: 1px solid var(--line); background: transparent; color: var(--fg);
+}
+.lab-btn.pegar:hover { border-color: var(--accent-line); }
+.lab-btn.entrar { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.lab-btn.entrar:hover { filter: brightness(1.08); }
+@media (max-width: 460px) { .labs-slot .lab-btn { margin-left: 0; width: 100%; text-align: center; } }
+.chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 700; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; }
+
+/* Popup da Arena: vídeo + checklist */
+.video { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; background: #000; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.checks label { padding: 10px 12px; border: 1px solid transparent; border-radius: 10px; color: var(--fg); }
+.checks label.falta { border-color: rgba(255, 138, 150, .6); background: rgba(255, 138, 150, .08); }
+.checks input:checked + span { color: var(--fg); text-decoration: none; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+/* Versão compacta (minimalista) dos cards — vale para todos; sobrescreve as regras acima */
+.arenas { gap: 12px; }
+.arena img { aspect-ratio: 16 / 7; }
+.arena-body { padding: 12px 14px 14px; gap: 4px; }
+.arena-body h3 { font-size: 1.05rem; }
+.arena-body p { font-size: .85rem; line-height: 1.45; }
+.arena .btn { margin-top: 8px; min-height: 40px; padding: 8px 14px; font-size: .92rem; }
+.is-mentorada .praticas { grid-template-columns: 3fr 1fr; gap: 16px; }
+.is-mentorada .panel { padding: 16px; border-radius: 16px; }
+.is-mentorada .panel-arenas .arenas { grid-template-columns: repeat(4, 1fr); }
+.panel-head { margin-bottom: 12px; }
+.panel-head h3 { font-size: 1.15rem; }
+.panel-kicker { font-size: .78rem; }
+.panel-labs { gap: 10px; }
+.panel-labs img { aspect-ratio: 16 / 7; }
+.panel-labs p { font-size: .85rem; line-height: 1.45; }
+.panel-labs .btn { min-height: 40px; padding: 8px 14px; font-size: .92rem; }
+@media (max-width: 1000px) {
+  .is-mentorada .praticas { grid-template-columns: 1fr; }
+  .is-mentorada .panel-arenas .arenas { grid-template-columns: repeat(4, 1fr); }
+  .panel-labs { display: grid; grid-template-columns: 140px 1fr; grid-template-areas: "img head" "img txt" "btn btn"; column-gap: 14px; row-gap: 6px; }
+  .panel-labs .panel-head { grid-area: head; }
+  .panel-labs img { grid-area: img; aspect-ratio: 4 / 3; align-self: center; }
+  .panel-labs p { grid-area: txt; }
+  .panel-labs .btn { grid-area: btn; margin-top: 4px; }
+}
+@media (max-width: 760px) {
+  .arenas, .is-mentorada .panel-arenas .arenas { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .arena img { aspect-ratio: 2 / 1; }
+  .arena-body { padding: 10px 12px 12px; }
+  .arena-body h3 { font-size: 1rem; }
+  .arena .btn { min-height: 38px; font-size: .88rem; }
+}
+@media (max-width: 460px) {
+  .arena-body p { display: none; }
+  .is-mentorada .panel { padding: 12px; }
+  .panel-labs { grid-template-columns: 96px 1fr; }
+  .panel-labs p { display: none; }
+}
+/* Tela final compacta: tudo na primeira dobra */
+#s-fim { padding-top: 28px; gap: 18px; }
+.embed #s-fim { padding-top: 14px; }
+.fim-head { gap: 6px; }
+.fim-head h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); }
+.fim-head p { font-size: 1rem; line-height: 1.5; }
+.fim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+.fim-grid .detalhes { padding: 18px; gap: 12px; justify-content: space-between; }
+.fim-grid .detalhes dl { grid-template-columns: 1.2fr 1.4fr .9fr; gap: 10px 14px; }
+.fim-grid .detalhes dl div:last-child { grid-column: 1 / -1; }
+.fim-grid .detalhes dd { font-size: 1.05rem; line-height: 1.3; }
+.fim-grid .detalhes .detalhes-link { font-size: .95rem; }
+.fim-grid .detalhes-btn { min-height: 48px; }
+.fim-grid .material-destaque { padding: 20px 18px; gap: 6px; justify-content: center; }
+.fim-grid .material-icone { width: 54px; height: 54px; }
+.fim-grid .material-destaque h2 { font-size: 1.4rem; }
+.fim-grid .material-btn { min-height: 54px; font-size: 1rem; margin-top: 8px; }
+@media (max-width: 760px) {
+  #s-fim { padding-top: 16px; gap: 14px; }
+  .fim-head p { font-size: .92rem; }
+  .fim-grid { grid-template-columns: 1fr; gap: 12px; }
+  .fim-grid .detalhes { padding: 14px; gap: 10px; }
+  .fim-grid .detalhes dl { grid-template-columns: 1fr 1.25fr .8fr; gap: 6px 10px; }
+  .fim-grid .detalhes dt { font-size: .72rem; }
+  .fim-grid .detalhes dd { font-size: .9rem; }
+  .fim-grid .detalhes .detalhes-link { font-size: .85rem; }
+  .fim-grid .detalhes-btn { min-height: 44px; font-size: .95rem; padding: 8px 14px; }
+  .fim-grid .material-destaque { padding: 14px; flex-direction: column; }
+  .fim-grid .material-icone, .fim-grid .material-destaque p { display: none; }
+  .fim-grid .material-destaque h2 { font-size: 1.15rem; }
+  .fim-grid .material-btn { min-height: 50px; font-size: .95rem; margin-top: 6px; }
+  /* celular: espaço extra para caber tudo acima da dobra mesmo com a barra do navegador */
+  .topbar { padding: 8px 20px; }
+  .topbar-btn { padding: 6px 12px; font-size: .82rem; }
+  #s-fim { padding-top: 10px; gap: 10px; }
+  .fim-head .kicker, .fim-grid .detalhes-kicker, .fim-grid .material-kicker { display: none; }
+  .fim-head h1 { font-size: 1.5rem; }
+  .fim-head p { font-size: .86rem; line-height: 1.4; }
+  .fim-grid { gap: 10px; }
+  .fim-grid .detalhes { padding: 12px 14px; gap: 8px; }
+  .fim-grid .detalhes-btn { min-height: 40px; }
+  .fim-grid .material-destaque { padding: 12px 14px; gap: 4px; }
+  .fim-grid .material-btn { min-height: 46px; }
+}
+</style>
+<!-- Página incorporada na Cademí: a aula usa iframe-resizer v4.2.11 (quadro começa com altura 0 e
+     espera a página informar a altura). Esta é a parte "filha" da MESMA versão. Fora de iframe não faz nada. -->
+<script>
+  // Área do quadro que está visível na tela da aluna: posiciona popups, avisos e o botão de Suporte.
+  window.iFrameResizer = {
+    onReady: function () {
+      if (!window.parentIFrame) return;
+      document.documentElement.classList.add("resizer");
+      window.parentIFrame.getPageInfo(function (i) {
+        var topo = Math.max(i.offsetTop, i.scrollTop), fim = Math.min(i.offsetTop + i.iframeHeight, i.scrollTop + i.windowHeight);
+        var visTop = topo - i.offsetTop, visH = Math.max(fim - topo, 240);
+        document.documentElement.style.setProperty("--vis-top", visTop + "px");
+        document.documentElement.style.setProperty("--vis-h", visH + "px");
+      });
+    }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.2.11/iframeResizer.contentWindow.min.js"></script>
+</head>
+<body>
+<script>try { if (window.self !== window.top) document.body.classList.add("embed"); } catch (e) { document.body.classList.add("embed"); }</script>
+<nav class="topbar" aria-label="Navegação">
+  <a class="topbar-btn" id="homeBtn" href="https://alunos.tiadoingles.com.br/area/vitrine/home" target="_top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    HOME
+  </a>
+  <button class="topbar-btn" type="button" id="voltarBtn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    VOLTAR
+  </button>
+</nav>
+<div class="page">
+
+  <!-- Arenas (tela inicial) -->
+  <main class="screen" id="s-arenas">
+    <div class="progress"></div>
+    <div class="screen-head">
+      <span class="kicker">Fluent Mind Academy</span>
+      <h1>Sistema de agendamento de <span class="accent">Práticas Fluent Mind Academy</span></h1>
+      <p class="muted" id="arenasSub">Escolha a sua Arena para ver as instruções e os horários.</p>
+    </div>
+    <div class="praticas">
+      <div class="panel panel-arenas">
+        <div class="panel-head" id="arenasLabel" hidden>
+          <span class="panel-kicker">Prática em grupo, por nível</span>
+          <h3>Arenas de Conversação</h3>
+        </div>
+        <div class="arenas" id="arenas"></div>
+      </div>
+      <!-- Fluent Labs: só no link da Mentoria (/mentoria/). Horários e links vêm do Apps Script depois de conferir o e-mail. -->
+      <div class="panel panel-labs" id="labsBlock" hidden>
+        <div class="panel-head">
+          <span class="panel-kicker">Exclusivo da Mentoria</span>
+          <h3>Fluent Labs</h3>
+        </div>
+        <img src="img/fluent-labs.svg" alt="">
+        <p>Salas de prática com os tutores, de segunda a sexta. Entre no horário que for melhor para você.</p>
+        <button class="btn" type="button" id="openLabs">Ver dias e horários</button>
+      </div>
+    </div>
+  </main>
+
+
+  <!-- Fluent Labs -->
+  <section class="screen" id="s-labs" hidden>
+    <div class="screen-head">
+      <span class="kicker">Exclusivo da Mentoria</span>
+      <h2>Fluent Labs</h2>
+      <p class="muted">Horários de Brasília. O botão <b>ENTRAR NA SALA</b> aparece 5 minutos antes do horário e fica até 5 minutos depois. Antes disso, use <b>COPIAR LINK</b> e salve o link em local seguro.</p>
+    </div>
+    <div class="slots" id="labsSlots"></div>
+    <button class="link" type="button" data-go="s-arenas">Voltar</button>
+  </section>
+
+  <!-- Horário -->
+  <section class="screen" id="s-horario" hidden>
+    <div class="progress"></div>
+    <div class="screen-head">
+      <h2>Escolha o dia e o horário</h2>
+      <p class="muted" id="nivelLabel"></p>
+    </div>
+    <div class="slots" id="slots"></div>
+    <button class="link" type="button" data-go="s-arenas">Trocar de Arena</button>
+  </section>
+
+
+  <!-- Parabéns: tudo na primeira dobra (computador: detalhes e material lado a lado) -->
+  <section class="screen" id="s-fim" hidden>
+    <div class="screen-head fim-head">
+      <span class="kicker" id="fimKicker">Inscrição confirmada</span>
+      <h1>PARABÉNS!</h1>
+      <p id="fimTexto"></p>
+    </div>
+    <div class="fim-grid">
+      <div class="detalhes" id="fimDetalhes">
+        <span class="detalhes-kicker">Detalhes da sua Arena</span>
+        <dl>
+          <div><dt>Arena</dt><dd id="fimArena"></dd></div>
+          <div><dt>Dia</dt><dd id="fimDia"></dd></div>
+          <div><dt>Horário</dt><dd id="fimHora"></dd></div>
+          <div class="fim-link"><dt>Link da sala</dt><dd id="fimLinkTxt" class="detalhes-link"></dd></div>
+        </dl>
+        <button class="btn detalhes-btn" type="button" id="fimCopiar">COPIAR LINK</button>
+        <p class="agenda-aviso" id="fimAgenda" hidden></p>
+      </div>
+      <div class="material-destaque">
+        <div class="material-icone" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        </div>
+        <span class="material-kicker">Passo obrigatório</span>
+        <h2>Material da sua Arena</h2>
+        <p>Baixe agora e estude o conteúdo antes da Arena.</p>
+        <a class="btn material-btn" id="materialBtn" href="#" target="_blank" rel="noopener">APERTE AQUI E BAIXE SEU MATERIAL</a>
+      </div>
+    </div>
+    <button class="link" type="button" data-go="s-arenas">Voltar ao início</button>
+  </section>
+
+  <footer class="foot" id="foot" hidden>
+    <button class="link" type="button" id="openInfo">Como funciona</button>
+    <button class="link" type="button" id="openFaq">Dúvidas frequentes</button>
+  </footer>
+</div>
+
+<!-- Popup: dados da aluna (abre ao escolher o horário) -->
+<div class="modal" id="dadosModal" role="dialog" aria-modal="true" aria-labelledby="dadosTitle" hidden>
+  <div class="modal-box">
+    <div class="block">
+      <span class="kicker">Último passo</span>
+      <h2 id="dadosTitle">Preencha seus dados</h2>
+    </div>
+    <div class="summary">
+      <span class="muted small">Você escolheu</span>
+      <strong id="chosenText"></strong>
+    </div>
+    <form class="form" id="startForm" novalidate>
+      <div class="field">
+        <label for="fNome">Nome</label>
+        <input id="fNome" name="nome" type="text" autocomplete="name" placeholder="Seu nome completo" required>
+      </div>
+      <div class="field">
+        <label for="fEmail">E-mail</label>
+        <input id="fEmail" name="email" type="email" autocomplete="email" inputmode="email" placeholder="seuemail@exemplo.com" required>
+      </div>
+      <div class="field">
+        <label for="fWhats">WhatsApp</label>
+        <div class="tel">
+          <button type="button" class="ddi-btn" id="ddiBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Código do país (DDI)">
+            <span class="ddi-flag" id="ddiFlag">🇧🇷</span><span id="ddiCode">+55</span><span class="ddi-seta" aria-hidden="true">▾</span>
+          </button>
+          <input id="fWhats" name="whatsapp" type="tel" autocomplete="tel-national" inputmode="tel" placeholder="(DDD) 99999-9999" required>
+          <div class="ddi-lista" id="ddiLista" hidden>
+            <input type="search" id="ddiBusca" placeholder="Busque o país ou o código (ex.: Portugal, +351)" autocomplete="off" aria-label="Buscar país">
+            <ul id="ddiOpcoes" role="listbox" aria-label="Países"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="hp" aria-hidden="true"><label for="fSite">Site</label><input id="fSite" name="site" type="text" tabindex="-1" autocomplete="off"></div>
+      <p class="form-error" id="formError" role="alert"></p>
+      <button class="btn" type="submit" id="startBtn">Confirmar minha inscrição</button>
+      <p class="muted small">Seus dados ficam só com a equipe da Tia do Inglês.</p>
+    </form>
+    <button class="link" type="button" id="dadosVoltar">Escolher outro horário</button>
+  </div>
+</div>
+
+<!-- Popup: curso (só para quem não está na lista da Mentoria) -->
+<div class="modal" id="perfilModal" role="dialog" aria-modal="true" aria-labelledby="perfilTitle" hidden>
+  <div class="modal-box">
+    <div class="block">
+      <h2 id="perfilTitle">Qual é o seu curso?</h2>
+      <p class="muted">Assim a gente mostra a regra de frequência certa para você.</p>
+    </div>
+    <div class="options">
+      <button class="option" type="button" id="optMentoria">
+        <span><span class="t">Sou da Mentoria Fluent Mind</span><span class="d"></span></span><span class="arrow" aria-hidden="true">›</span>
+      </button>
+      <button class="option" type="button" id="optBlack">
+        <span><span class="t">Sou aluno da Black Friday</span><span class="d"></span></span><span class="arrow" aria-hidden="true">›</span>
+      </button>
+      <button class="option" type="button" id="optOutros">
+        <span><span class="t">Sou aluno de outros cursos</span><span class="d">Método Tia do Inglês e demais cursos</span></span><span class="arrow" aria-hidden="true">›</span>
+      </button>
+    </div>
+    <button class="link" type="button" id="perfilVoltar">Voltar e corrigir meus dados</button>
+  </div>
+</div>
+
+<!-- Popup: instruções da Arena (vídeo + checklist) -->
+<div class="modal" id="arenaModal" role="dialog" aria-modal="true" aria-labelledby="arenaTitle" hidden>
+  <div class="modal-box arena-box" id="arenaBox">
+    <div class="arena-col">
+      <div class="block">
+        <span class="kicker">Instruções da Arena</span>
+        <h2 id="arenaTitle"></h2>
+      </div>
+      <p class="aviso-video">ASSISTA ATÉ O FINAL ANTES DE SEGUIR</p>
+      <div class="video" id="arenaVideo"></div>
+    </div>
+    <div class="arena-col">
+      <div class="block">
+        <h3>Antes de se inscrever, confirme:</h3>
+        <div class="checks" id="arenaChecks"></div>
+      </div>
+      <p class="form-error" id="arenaError" role="alert"></p>
+      <div class="actions">
+        <button class="btn" type="button" id="arenaGo">FAZER MINHA INSCRIÇÃO</button>
+        <button class="btn btn-outline" type="button" id="arenaBack">Voltar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Popup: como funciona -->
+<div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
+  <div class="modal-box">
+    <div class="block">
+      <span class="kicker">Como funciona</span>
+      <h2 id="infoTitle">Arenas de Conversação</h2>
+      <p>As Arenas de conversação são para <strong class="accent">PRATICAR</strong> de forma segura e divertida.</p>
+      <p>Lembre-se do horário para não se atrasar.</p>
+      <p class="note">É <strong>INDISPENSÁVEL</strong> fazer o download do Material da Arena dentro da Plataforma para se preparar.</p>
+    </div>
+    <button class="btn" type="button" id="nextStep">Próximo passo</button>
+  </div>
+</div>
+
+<!-- Popup: e-mail não encontrado na Mentoria -->
+<div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
+  <div class="modal-box alerta">
+    <div class="block">
+      <div class="alert-icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+      <h2 id="confirmTitle">Você confirma essa informação?</h2>
+      <p>Não encontramos o e-mail <b id="confirmEmail"></b> na lista de alunas da Mentoria Fluent Mind.</p>
+      <p class="muted small">Se você usa outro e-mail na Mentoria, volte e corrija.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" id="confirmYes">Sim, sou da Mentoria</button>
+      <button class="btn btn-outline" type="button" id="confirmFix">Corrigir meu e-mail</button>
+      <button class="btn btn-outline" type="button" id="confirmOther">Sou aluno de outros cursos</button>
+    </div>
+  </div>
+</div>
+
+<!-- Popup: confirmar Black Friday -->
+<div class="modal" id="blackModal" role="dialog" aria-modal="true" aria-labelledby="blackTitle" hidden>
+  <div class="modal-box alerta">
+    <div class="block">
+      <div class="alert-icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+      <h2 id="blackTitle">VOCÊ CONFIRMA ESSA INFORMAÇÃO?</h2>
+      <p>Você selecionou <b>Sou aluno da Black Friday</b>.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" id="blackYes">Sim, sou aluno da Black Friday</button>
+      <button class="btn btn-outline" type="button" id="blackNo">Não, quero escolher outra opção</button>
+    </div>
+  </div>
+</div>
+
+<!-- Popup: limite de 1x por semana (outros cursos) -->
+<div class="modal" id="weekModal" role="dialog" aria-modal="true" aria-labelledby="weekTitle" hidden>
+  <div class="modal-box alerta">
+    <div class="block" id="weekAsk">
+      <div class="alert-icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+      <h2 id="weekTitle">É permitida a participação nas Arenas apenas 1x por semana</h2>
+      <p>Este e-mail já fez uma inscrição nesta semana (de segunda a domingo).</p>
+    </div>
+    <div class="actions" id="weekAskActions">
+      <button class="btn" type="button" id="weekNotYet">Ainda não participei</button>
+      <button class="btn btn-outline" type="button" id="weekDone">Já participei 1x</button>
+    </div>
+    <div class="block" id="weekBlocked" hidden>
+      <h2>Nos vemos na próxima semana!</h2>
+      <p>Você já usou a sua Arena desta semana. Faça uma nova inscrição a partir de <b id="nextMonday"></b>.</p>
+      <p class="muted small">Quer praticar sem limite? Fale com o suporte sobre a Mentoria Fluent Mind.</p>
+    </div>
+    <div class="actions" id="weekBlockedActions" hidden>
+      <button class="btn btn-outline" type="button" id="weekClose">Entendi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Popup: dúvidas -->
+<div class="modal" id="faqModal" role="dialog" aria-modal="true" aria-labelledby="faqTitle" hidden>
+  <div class="modal-box">
+    <h2 id="faqTitle">Dúvidas frequentes</h2>
+    <div>
+      <details><summary>O e-mail de confirmação não chegou. E agora?</summary><p>Procure nas pastas Spam, Lixo eletrônico e Promoções. Confira também se digitou o e-mail certo na inscrição. Se não encontrar, fale com o suporte.</p></details>
+      <details><summary>Posso participar mais de uma vez na semana?</summary><p>Alunas da Mentoria e da Black Friday podem participar sem limite. Alunas do Método Tia do Inglês podem participar 1 vez por semana.</p></details>
+      <details><summary>E se eu me atrasar?</summary><p>Depois de 5 minutos do horário marcado, a entrada não é permitida. Faça uma nova inscrição em outro horário.</p></details>
+      <details><summary>Não vou conseguir ir. Preciso avisar?</summary><p>Sim. Avise o suporte para liberar sua vaga e escolha outro horário.</p></details>
+      <details><summary>Posso só ficar ouvindo?</summary><p>A Arena é um espaço para falar. Pode começar com respostas curtas, no seu ritmo.</p></details>
+      <details><summary>Escolhi o nível errado. Tem problema?</summary><p>Não tem problema. Na próxima vez, escolha o nível que combinou mais com você.</p></details>
+    </div>
+    <button class="btn btn-outline" type="button" id="closeFaq">Fechar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+
+<script>
+// ===== CONFIGURAÇÃO: edite aqui horários e links =====
+const CONFIG = {
+  cadastroUrl: "https://script.google.com/macros/s/AKfycbxqh_dIhv6T05QD8QBigK-GOZpLosBbSVpEJjnZbkmw2zctPCCDiQo-HOOB0zooQGDt/exec", // grava na planilha "Lista Pré-Arena" e confere a Mentoria
+  // Feriados nacionais: todas as atividades são canceladas e aparece um aviso em cima do horário.
+  // (A mesma lista está no Apps Script, em FERIADOS.) Carnaval e Corpus Christi não são feriados nacionais.
+  feriados: {
+    "2026-11-02": "Finados", "2026-11-15": "Proclamação da República", "2026-11-20": "Dia da Consciência Negra",
+    "2026-12-25": "Natal", "2027-01-01": "Confraternização Universal", "2027-03-26": "Paixão de Cristo",
+    "2027-04-21": "Tiradentes", "2027-05-01": "Dia do Trabalho", "2027-09-07": "Independência do Brasil",
+    "2027-10-12": "Nossa Senhora Aparecida", "2027-11-02": "Finados", "2027-11-15": "Proclamação da República",
+    "2027-11-20": "Dia da Consciência Negra", "2027-12-25": "Natal"
+  },
+  // Os horários e links do Fluent Labs NÃO ficam aqui: vêm do Apps Script,
+  // só para quem está na lista da Mentoria.
+  // Pastas do Drive com o material (aparecem no Parabéns, depois do Prosseguir)
+  materialRecemChegados: "https://drive.google.com/drive/folders/1LNnWmxeio2ZGQxVwAiwTYegEtakL4UrL?usp=share_link",
+  materialDemais: "https://drive.google.com/drive/folders/1GZyU7_hq8Yx4jI4r0-aVzOULRtUByyni?usp=share_link",
+  // Por nível: imagem do card, descrição, vídeo do YouTube (só o ID) e checklist obrigatório do popup
+  niveis: {
+    rc: { nome: "Recém Chegados", cls: "lv-rc", img: "img/recem-chegados.svg", video: "Ac6XO0w7S1I",
+          desc: "Iniciantes: para quem é zerado no inglês ou está muito básico.",
+          checklist: [
+            "Estou ciente que o limite de atraso é de 5 minutos",
+            "Estou ciente de que devo baixar o Material antes de me inscrever",
+            "Estou ciente que a sala abre com 5 min de antecedência",
+            "Assisti o vídeo de instruções até o final"
+          ] },
+    ba: { nome: "Básicos",        cls: "lv-ba", img: "img/basicos.svg", video: "Ac6XO0w7S1I",
+          desc: "Para quem já forma frases simples e quer ganhar confiança.", checklist: "padrao" },
+    in: { nome: "Intermediários", cls: "lv-in", img: "img/intermediarios.svg", video: "Ac6XO0w7S1I",
+          desc: "Para quem já conversa e quer mais fluidez e vocabulário.", checklist: "padrao" },
+    av: { nome: "Avançados",      cls: "lv-av", img: "img/avancados.svg", video: "Ac6XO0w7S1I",
+          desc: "Para quem conversa com facilidade e quer refinar a fala.", checklist: "padrao" }
+  },
+  checklistPadrao: [
+    "Estou ciente que o limite de atraso é de 5 minutos",
+    "Estou ciente de que devo baixar o Material antes de me inscrever",
+    "Estou ciente de que devo me preparar com o conteúdo do Material antes da Arena",
+    "Estou ciente que a sala abre com 5 min de antecedência",
+    "Assisti o vídeo de instruções até o final"
+  ],
+  // dia: 1 = segunda ... 5 = sexta
+  // dia: 1 = segunda ... 5 = sexta. meet = link do Google Meet do evento na agenda dos tutores.
+  // zoom = só para as Arenas que ainda não têm Meet na agenda (inscrição antiga no Zoom).
+  arenas: [
+    { dia: 1, hora: "17h", nivel: "av", meet: "https://meet.google.com/dih-qdgf-ejb" },
+    { dia: 1, hora: "18h", nivel: "ba", meet: "https://meet.google.com/qux-rwtm-viv" },
+    { dia: 1, hora: "20h", nivel: "in", meet: "https://meet.google.com/cfg-tfyw-dsx" },
+    { dia: 2, hora: "11h", nivel: "in", meet: "https://meet.google.com/vko-qnwg-fsj" },
+    { dia: 3, hora: "11h", nivel: "ba", meet: "https://meet.google.com/xib-uuih-ccu" },
+    { dia: 3, hora: "18h", nivel: "rc", meet: "https://meet.google.com/fej-ywfs-gns" },
+    { dia: 3, hora: "20h", nivel: "in", meet: "https://meet.google.com/kcc-ruct-gia" },
+    { dia: 4, hora: "11h", nivel: "in", meet: "https://meet.google.com/mre-wmdb-qds" },
+    { dia: 4, hora: "17h", nivel: "rc", meet: "https://meet.google.com/dnf-ydqi-cri" },
+    { dia: 4, hora: "19h", nivel: "av", meet: "https://meet.google.com/yow-vmfa-ajz" },
+    { dia: 5, hora: "11h", nivel: "ba", meet: "https://meet.google.com/mem-dinm-usd" }
+  ]
+};
+// ================================================================
+
+const DIAS = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const $ = id => document.getElementById(id);
+let aluna = null;     // { nome, email, whatsapp, site }
+let selected = null;  // nível
+
+// ---------- Navegação entre telas ----------
+const TELAS = ["s-arenas", "s-labs", "s-horario", "s-fim"];
+// Link da Mentoria (/arenas/mentoria/): mostra o Fluent Labs e não pergunta o curso
+const MENTORIA = /\/mentoria(\/|\/index\.html)?$/.test(location.pathname);
+let intencao = "arena"; // o popup de dados foi aberto para uma Arena ou para ver o Fluent Labs
+let praticas = [];      // Fluent Labs: só chegam do Apps Script para e-mails da lista da Mentoria
+let mentorada = false; // e-mail encontrado na lista da Mentoria: pula a escolha de curso
+let escolha = null;     // { a, d } Arena e data escolhidas
+// Histórico das telas do sistema para o botão VOLTAR (na primeira tela, VOLTAR leva ao HOME da Cademí)
+const HOME_URL = "https://alunos.tiadoingles.com.br/area/vitrine/home";
+let telaAtual = null, historico = [];
+function show(id, voltando) {
+  if (!voltando && telaAtual && telaAtual !== id) historico.push(telaAtual);
+  telaAtual = id;
+  TELAS.forEach(t => { $(t).hidden = t !== id; });
+  document.querySelector(".page").classList.toggle("wide", id === "s-arenas" || id === "s-fim");
+  // Passos: Arena → horário (os dados vêm no popup) → link e material
+  const passos = ["s-arenas", "s-horario", "s-fim"];
+  const prog = $(id).querySelector(".progress"), i = passos.indexOf(id);
+  if (prog && i > -1) {
+    prog.innerHTML = '<span>Passo ' + (i + 1) + ' de ' + passos.length + '</span><div class="bar"><span></span></div>';
+    prog.querySelector(".bar span").style.width = Math.round((i + 1) / passos.length * 100) + "%";
+  }
+  window.scrollTo(0, 0);
+  // Na Cademí, leva a página da aula até o topo do quadro (menos na abertura, para não pular a página)
+  if (window.parentIFrame && telaJaMostrada) window.parentIFrame.scrollToOffset(0, 0);
+  telaJaMostrada = true;
+}
+let telaJaMostrada = false;
+$("voltarBtn").addEventListener("click", () => {
+  const aberto = [...document.querySelectorAll(".modal")].find(m => !m.hidden);
+  if (aberto) { if (aberto.id === "arenaModal") fecharArena(); else closeModal(aberto); return; } // fecha o popup aberto
+  if (historico.length) show(historico.pop(), true);
+  else { try { window.top.location.href = HOME_URL; } catch (e) { window.location.href = HOME_URL; } }
+});
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
+
+function openModal(m) { m.hidden = false; document.body.classList.add("modal-open"); const f = m.querySelector("button"); if (f) f.focus({ preventScroll: true }); }
+function closeModal(m) { m.hidden = true; if (![...document.querySelectorAll(".modal")].some(x => !x.hidden)) document.body.classList.remove("modal-open"); }
+
+// ---------- Entrada ----------
+function lerSalvo() { try { return JSON.parse(localStorage.getItem("arenas-aluna") || "null"); } catch (e) { return null; } }
+function salvar(d) { try { localStorage.setItem("arenas-aluna", JSON.stringify(d)); } catch (e) { /* sem armazenamento */ } }
+const salvo = lerSalvo();
+if (salvo) { $("fNome").value = salvo.nome || ""; $("fEmail").value = salvo.email || ""; }
+
+// ---------- WhatsApp com DDI ----------
+// Código do país → DDI. Os nomes dos países vêm em português do próprio navegador (Intl.DisplayNames).
+const DDIS = {AF:"93",AX:"358",AL:"355",DZ:"213",AS:"1684",AD:"376",AO:"244",AI:"1264",AG:"1268",AR:"54",AM:"374",AW:"297",AU:"61",AT:"43",AZ:"994",
+  BS:"1242",BH:"973",BD:"880",BB:"1246",BY:"375",BE:"32",BZ:"501",BJ:"229",BM:"1441",BT:"975",BO:"591",BQ:"599",BA:"387",BW:"267",BR:"55",IO:"246",
+  VG:"1284",BN:"673",BG:"359",BF:"226",BI:"257",KH:"855",CM:"237",CA:"1",CV:"238",KY:"1345",CF:"236",TD:"235",CL:"56",CN:"86",CX:"61",CC:"61",
+  CO:"57",KM:"269",CG:"242",CD:"243",CK:"682",CR:"506",CI:"225",HR:"385",CU:"53",CW:"599",CY:"357",CZ:"420",DK:"45",DJ:"253",DM:"1767",DO:"1809",
+  EC:"593",EG:"20",SV:"503",GQ:"240",ER:"291",EE:"372",SZ:"268",ET:"251",FK:"500",FO:"298",FJ:"679",FI:"358",FR:"33",GF:"594",PF:"689",GA:"241",
+  GM:"220",GE:"995",DE:"49",GH:"233",GI:"350",GR:"30",GL:"299",GD:"1473",GP:"590",GU:"1671",GT:"502",GG:"44",GN:"224",GW:"245",GY:"592",HT:"509",
+  HN:"504",HK:"852",HU:"36",IS:"354",IN:"91",ID:"62",IR:"98",IQ:"964",IE:"353",IM:"44",IL:"972",IT:"39",JM:"1876",JP:"81",JE:"44",JO:"962",KZ:"7",
+  KE:"254",KI:"686",XK:"383",KW:"965",KG:"996",LA:"856",LV:"371",LB:"961",LS:"266",LR:"231",LY:"218",LI:"423",LT:"370",LU:"352",MO:"853",MG:"261",
+  MW:"265",MY:"60",MV:"960",ML:"223",MT:"356",MH:"692",MQ:"596",MR:"222",MU:"230",YT:"262",MX:"52",FM:"691",MD:"373",MC:"377",MN:"976",ME:"382",
+  MS:"1664",MA:"212",MZ:"258",MM:"95",NA:"264",NR:"674",NP:"977",NL:"31",NC:"687",NZ:"64",NI:"505",NE:"227",NG:"234",NU:"683",NF:"672",KP:"850",
+  MK:"389",MP:"1670",NO:"47",OM:"968",PK:"92",PW:"680",PS:"970",PA:"507",PG:"675",PY:"595",PE:"51",PH:"63",PL:"48",PT:"351",PR:"1787",QA:"974",
+  RE:"262",RO:"40",RU:"7",RW:"250",BL:"590",SH:"290",KN:"1869",LC:"1758",MF:"590",PM:"508",VC:"1784",WS:"685",SM:"378",ST:"239",SA:"966",SN:"221",
+  RS:"381",SC:"248",SL:"232",SG:"65",SX:"1721",SK:"421",SI:"386",SB:"677",SO:"252",ZA:"27",KR:"82",SS:"211",ES:"34",LK:"94",SD:"249",SR:"597",
+  SJ:"47",SE:"46",CH:"41",SY:"963",TW:"886",TJ:"992",TZ:"255",TH:"66",TL:"670",TG:"228",TK:"690",TO:"676",TT:"1868",TN:"216",TR:"90",TM:"993",
+  TC:"1649",TV:"688",UG:"256",UA:"380",AE:"971",GB:"44",US:"1",UY:"598",VI:"1340",UZ:"998",VU:"678",VA:"39",VE:"58",VN:"84",WF:"681",EH:"212",
+  YE:"967",ZM:"260",ZW:"263"};
+const nomesPais = (() => { try { return new Intl.DisplayNames(["pt-BR"], { type: "region" }); } catch (e) { return null; } })();
+const bandeira = iso => String.fromCodePoint(...[...iso].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+const semAcento = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const PAISES = Object.entries(DDIS)
+  .map(([iso, ddi]) => ({ iso, ddi, nome: (nomesPais && nomesPais.of(iso)) || iso, flag: bandeira(iso) }))
+  .sort((a, b) => a.iso === "BR" ? -1 : b.iso === "BR" ? 1 : a.nome.localeCompare(b.nome, "pt-BR"));
+let pais = PAISES[0]; // Brasil
+
+function escolherPais(p, focarNumero) {
+  pais = p;
+  $("ddiFlag").textContent = p.flag;
+  $("ddiCode").textContent = "+" + p.ddi;
+  $("ddiBtn").setAttribute("aria-label", "Código do país (DDI): " + p.nome + " +" + p.ddi);
+  $("fWhats").placeholder = p.iso === "BR" ? "(DDD) 99999-9999" : "Número com código de área";
+  formatarNumero();
+  fecharDdi();
+  if (focarNumero) $("fWhats").focus();
+}
+function formatarNumero() {
+  const campo = $("fWhats");
+  if (pais.iso !== "BR") { campo.value = campo.value.replace(/[^\d\s-]/g, "").slice(0, 18); return; }
+  const d = campo.value.replace(/\D/g, "").slice(0, 11);
+  let v = d;
+  if (d.length > 2) v = "(" + d.slice(0, 2) + ") " + d.slice(2);
+  if (d.length > 7) v = "(" + d.slice(0, 2) + ") " + d.slice(2, d.length - 4) + "-" + d.slice(d.length - 4);
+  campo.value = v;
+}
+$("fWhats").addEventListener("input", formatarNumero);
+
+function listarPaises(busca) {
+  const q = semAcento(busca.trim()), num = busca.replace(/\D/g, "");
+  const achados = PAISES.filter(p => !q || semAcento(p.nome).includes(q) || p.iso.toLowerCase() === q || (num && p.ddi.startsWith(num)));
+  const ul = $("ddiOpcoes");
+  ul.innerHTML = "";
+  if (!achados.length) { ul.innerHTML = '<li class="vazio">Nenhum país encontrado</li>'; return; }
+  achados.forEach((p, i) => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.setAttribute("aria-selected", p === pais ? "true" : "false");
+    if (i === 0) li.classList.add("ativo");
+    li.innerHTML = '<span class="flag"></span><span class="nome"></span><span class="cod"></span>';
+    li.querySelector(".flag").textContent = p.flag;
+    li.querySelector(".nome").textContent = p.nome;
+    li.querySelector(".cod").textContent = "+" + p.ddi;
+    li.addEventListener("click", () => escolherPais(p, true));
+    ul.appendChild(li);
+  });
+}
+function abrirDdi() {
+  $("ddiLista").hidden = false;
+  $("ddiBtn").setAttribute("aria-expanded", "true");
+  $("ddiBusca").value = "";
+  listarPaises("");
+  $("ddiBusca").focus();
+}
+function fecharDdi() {
+  $("ddiLista").hidden = true;
+  $("ddiBtn").setAttribute("aria-expanded", "false");
+}
+$("ddiBtn").addEventListener("click", () => $("ddiLista").hidden ? abrirDdi() : fecharDdi());
+$("ddiBusca").addEventListener("input", e => listarPaises(e.target.value));
+$("ddiBusca").addEventListener("keydown", e => {
+  const itens = [...$("ddiOpcoes").querySelectorAll("li:not(.vazio)")];
+  let i = itens.findIndex(li => li.classList.contains("ativo"));
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    if (!itens.length) return;
+    if (i > -1) itens[i].classList.remove("ativo");
+    i = e.key === "ArrowDown" ? Math.min(itens.length - 1, i + 1) : Math.max(0, i - 1);
+    itens[i].classList.add("ativo"); itens[i].scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    if (itens[i > -1 ? i : 0]) itens[i > -1 ? i : 0].click();
+  } else if (e.key === "Escape") {
+    fecharDdi(); $("ddiBtn").focus();
+  }
+});
+document.addEventListener("click", e => { if (!$("ddiLista").hidden && !e.target.closest(".tel")) fecharDdi(); });
+
+// Dados salvos neste aparelho (versões antigas guardavam só o número brasileiro)
+if (salvo) {
+  const p = salvo.ddiIso && PAISES.find(x => x.iso === salvo.ddiIso);
+  if (p) escolherPais(p);
+  $("fWhats").value = salvo.numero || salvo.whatsapp || "";
+  formatarNumero();
+}
+
+$("startForm").addEventListener("submit", e => { e.preventDefault(); enviarDados(); });
+async function enviarDados(silencioso) {
+  const nome = $("fNome").value.trim().replace(/\s+/g, " ");
+  const email = $("fEmail").value.trim().toLowerCase();
+  const numero = $("fWhats").value.replace(/\D/g, "");
+  const whatsapp = pais.ddi + numero; // sempre com DDI (ex.: 5511999998888)
+  const err = $("formError");
+  err.textContent = "";
+  let erro = "", campo = null;
+  if (nome.length < 2) { erro = "Digite seu nome."; campo = "fNome"; }
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { erro = "Confira o seu e-mail."; campo = "fEmail"; }
+  else if (pais.iso === "BR" && (numero.length < 10 || numero.length > 11)) { erro = "Digite o WhatsApp com DDD (ex.: 11 99999-9999)."; campo = "fWhats"; }
+  else if (pais.iso !== "BR" && (numero.length < 6 || numero.length > 14)) { erro = "Confira o número do WhatsApp (sem o código do país)."; campo = "fWhats"; }
+  if (erro) {
+    if (silencioso) { abrirDados(); return; } // primeira vez neste aparelho: só abre o popup
+    err.textContent = erro; $(campo).focus();
+    return;
+  }
+  aluna = { nome, email, whatsapp, ddi: pais.ddi, pais: pais.iso, site: $("fSite").value, sessao: novaSessao(), acesso: ACESSO, dispositivo: DISPOSITIVO };
+  salvar({ nome, email, ddiIso: pais.iso, numero: $("fWhats").value });
+  // Confere o e-mail na lista da Mentoria (se achar, a planilha grava como "Mentoria" e já inscreve)
+  const btn = $("startBtn"), textoBtn = btn.textContent;
+  btn.disabled = true; btn.textContent = "Conferindo seus dados…";
+  if (silencioso) avisar("Conferindo seu acesso…", null, 20000);
+  const res = await enviar({ tipo: "mentoria" });
+  btn.disabled = false; btn.textContent = textoBtn;
+  if (silencioso) $("toast").hidden = true;
+  mentorada = !!(res && res.encontrada === true);
+  if (intencao === "labs") {
+    praticas = mentorada && Array.isArray(res.praticas) ? res.praticas.filter(l => l && l.tipo === "Fluent Labs") : [];
+    if (!praticas.length) {
+      if ($("dadosModal").hidden) abrirDados();
+      err.textContent = res ? "Não encontramos este e-mail na lista da Mentoria. Use o e-mail da sua matrícula ou fale com o suporte." : "Não conseguimos conferir agora. Tente de novo em instantes.";
+      $("fEmail").focus();
+      return;
+    }
+    closeModal($("dadosModal"));
+    renderLabs();
+    show("s-labs");
+    return;
+  }
+  closeModal($("dadosModal"));
+  if (mentorada) inscrever();
+  else if (MENTORIA) { $("confirmEmail").textContent = aluna.email; openModal($("confirmModal")); } // link da Mentoria: não pergunta o curso
+  else openModal($("perfilModal"));
+}
+$("dadosVoltar").addEventListener("click", () => closeModal($("dadosModal")));
+$("perfilVoltar").addEventListener("click", () => { closeModal($("perfilModal")); abrirDados(); });
+
+// Para a planilha (aba Inscrições): cada envio dos dados é uma sessão; de onde a aluna veio e em qual aparelho.
+function novaSessao() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+const ACESSO = (() => {
+  if (window.self === window.top) return "direto";
+  const ref = document.referrer || "";
+  return /tiadoingles\.com\.br|cademi/i.test(ref) ? "cademi" : "outro-site";
+})();
+const DISPOSITIVO = /iPad|Tablet/i.test(navigator.userAgent) ? "tablet" : (/Mobi|Android|iPhone/i.test(navigator.userAgent) ? "celular" : "computador");
+// Copiou o link / clicou em ENTRAR NA SALA (não espera resposta)
+function registrarLink(acao, pratica, d) {
+  if (aluna) enviar({ tipo: "evento", acao, pratica, inicio: d.toISOString() });
+}
+
+// ---------- Perfil (Mentoria x outros cursos) ----------
+async function enviar(extra) {
+  if (!CONFIG.cadastroUrl) return { ok: true, encontrada: true };
+  for (let tentativa = 0; tentativa < 2; tentativa++) {
+    try {
+      const r = await fetch(CONFIG.cadastroUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(Object.assign({}, aluna, extra))
+      });
+      if (r.ok) return await r.json();
+    } catch (e) { /* tenta de novo */ }
+  }
+  return null; // sem resposta: a aluna segue mesmo assim
+}
+
+function ocupado(sim) {
+  ["optMentoria", "optBlack", "optOutros"].forEach(id => { $(id).disabled = sim; });
+}
+
+// Curso definido: inscreve na Arena escolhida
+function seguirParaNivel() {
+  closeModal($("perfilModal"));
+  inscrever();
+}
+
+async function escolherOutros() {
+  ocupado(true);
+  const t = $("optOutros").querySelector(".d"), antes = t.textContent;
+  t.textContent = "Conferindo suas inscrições da semana…";
+  const res = await enviar({ tipo: "outros" });
+  t.textContent = antes;
+  ocupado(false);
+  if (res && res.jaEntrou) {
+    $("weekAsk").hidden = $("weekAskActions").hidden = false;
+    $("weekBlocked").hidden = $("weekBlockedActions").hidden = true;
+    openModal($("weekModal"));
+  } else {
+    seguirParaNivel();
+  }
+}
+$("optOutros").addEventListener("click", escolherOutros);
+
+$("optBlack").addEventListener("click", () => openModal($("blackModal")));
+$("blackYes").addEventListener("click", async () => {
+  $("blackYes").disabled = $("blackNo").disabled = true;
+  await enviar({ tipo: "blackfriday" });
+  $("blackYes").disabled = $("blackNo").disabled = false;
+  closeModal($("blackModal"));
+  seguirParaNivel();
+});
+$("blackNo").addEventListener("click", () => {
+  closeModal($("blackModal"));
+  $("optMentoria").focus();
+});
+
+function proximaSegunda() {
+  const d = new Date();
+  d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
+  return "segunda-feira, " + d.getDate() + " " + MESES[d.getMonth()];
+}
+$("weekNotYet").addEventListener("click", async () => {
+  $("weekNotYet").disabled = true;
+  await enviar({ tipo: "outros", confirmouSemana: true });
+  $("weekNotYet").disabled = false;
+  closeModal($("weekModal"));
+  seguirParaNivel();
+});
+$("weekDone").addEventListener("click", () => {
+  enviar({ tipo: "evento", acao: "parou-semana" });
+  $("nextMonday").textContent = proximaSegunda();
+  $("weekAsk").hidden = $("weekAskActions").hidden = true;
+  $("weekBlocked").hidden = $("weekBlockedActions").hidden = false;
+  $("weekClose").focus();
+});
+$("weekClose").addEventListener("click", () => {
+  closeModal($("weekModal"));
+  closeModal($("perfilModal"));
+  show("s-arenas");
+});
+
+$("optMentoria").addEventListener("click", async () => {
+  ocupado(true);
+  const t = $("optMentoria").querySelector(".d"), antes = t.textContent;
+  t.textContent = "Conferindo seu e-mail…";
+  const res = await enviar({ tipo: "mentoria" });
+  t.textContent = antes;
+  ocupado(false);
+  if (res && res.encontrada === false) {
+    $("confirmEmail").textContent = aluna.email;
+    openModal($("confirmModal"));
+  } else {
+    seguirParaNivel();
+  }
+});
+
+$("confirmYes").addEventListener("click", async () => {
+  $("confirmYes").disabled = true;
+  await enviar({ tipo: "mentoria", confirmou: true });
+  $("confirmYes").disabled = false;
+  closeModal($("confirmModal"));
+  seguirParaNivel();
+});
+$("confirmFix").addEventListener("click", () => {
+  closeModal($("confirmModal"));
+  closeModal($("perfilModal"));
+  abrirDados();
+  $("fEmail").focus();
+});
+$("confirmOther").addEventListener("click", () => {
+  closeModal($("confirmModal"));
+  escolherOutros();
+});
+
+// ---------- Arenas (tela inicial) ----------
+Object.entries(CONFIG.niveis).forEach(([key, n]) => {
+  const card = document.createElement("article");
+  card.className = "arena " + n.cls;
+  card.innerHTML = '<img alt="" loading="lazy"><div class="arena-body"><h3></h3><p></p>' +
+    '<button class="btn" type="button">Agendar</button></div>';
+  card.querySelector("img").src = n.img;
+  card.querySelector("h3").textContent = n.nome;
+  card.querySelector("p").textContent = n.desc;
+  card.querySelector("button").setAttribute("aria-label", "Ver instruções e agendar: " + n.nome);
+  card.querySelector("button").addEventListener("click", () => abrirArena(key));
+  $("arenas").appendChild(card);
+});
+
+let arenaAberta = null;
+function abrirArena(key) {
+  const n = CONFIG.niveis[key];
+  arenaAberta = key;
+  $("arenaTitle").textContent = "Arena " + n.nome;
+  $("arenaVideo").innerHTML = '<iframe title="Vídeo de instruções" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  $("arenaVideo").querySelector("iframe").src = "https://www.youtube-nocookie.com/embed/" + n.video + "?rel=0";
+  const itens = n.checklist === "padrao" ? CONFIG.checklistPadrao : n.checklist;
+  const box = $("arenaChecks");
+  box.innerHTML = "";
+  itens.forEach((txt, i) => {
+    const l = document.createElement("label");
+    l.htmlFor = "ac" + i;
+    l.innerHTML = '<input type="checkbox"><span></span>';
+    l.querySelector("input").id = "ac" + i;
+    l.querySelector("span").textContent = txt;
+    l.querySelector("input").addEventListener("change", e => {
+      if (e.target.checked) l.classList.remove("falta");
+      if (!box.querySelector(".falta")) $("arenaError").textContent = "";
+    });
+    box.appendChild(l);
+  });
+  $("arenaError").textContent = "";
+  openModal($("arenaModal"));
+  $("arenaModal").scrollTop = $("arenaBox").scrollTop = 0; // começa no aviso e no vídeo, não no botão
+  demoChecklist();
+}
+// Demonstração: uma seta de mouse marca as caixinhas uma a uma (~3 s) e depois desmarca tudo.
+// Começa quando o checklist aparece na tela (no celular, só ao rolar até ele).
+let demoTimers = [], demoObs = null;
+function pararDemo() {
+  demoTimers.forEach(clearTimeout); demoTimers = [];
+  if (demoObs) { demoObs.disconnect(); demoObs = null; }
+  $("arenaChecks").classList.remove("demo");
+  const c = $("demoCursor"); if (c) c.remove();
+}
+function demoChecklist() {
+  pararDemo();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const box = $("arenaChecks");
+  const inputs = [...box.querySelectorAll("input")];
+  const rodar = () => {
+    box.classList.add("demo");
+    const cur = document.createElement("div");
+    cur.id = "demoCursor"; cur.className = "demo-cursor"; cur.setAttribute("aria-hidden", "true");
+    cur.innerHTML = '<span class="ripple"></span><svg width="26" height="26" viewBox="0 0 24 24"><path d="M5 3l14 7-6 2-2 6z" fill="#fff" stroke="#04110e" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+    box.appendChild(cur);
+    const pos = el => { const a = el.getBoundingClientRect(), b = box.getBoundingClientRect(); return [a.left - b.left + a.width / 2 - 4, a.top - b.top + a.height / 2 - 3]; };
+    const [x0, y0] = pos(inputs[0]);
+    cur.style.transform = "translate(" + (x0 + 60) + "px," + (y0 + 30) + "px)";
+    const passo = 2600 / inputs.length;
+    inputs.forEach((inp, i) => {
+      demoTimers.push(setTimeout(() => {
+        const [x, y] = pos(inp);
+        cur.style.transform = "translate(" + x + "px," + y + "px)";
+      }, 150 + i * passo));
+      demoTimers.push(setTimeout(() => {
+        inp.checked = true;
+        cur.classList.remove("click"); void cur.offsetWidth; cur.classList.add("click");
+      }, 150 + i * passo + passo * 0.6));
+    });
+    demoTimers.push(setTimeout(() => {
+      inputs.forEach(inp => { inp.checked = false; });
+      pararDemo();
+    }, 3000));
+  };
+  demoObs = new IntersectionObserver(es => {
+    if (es.some(e => e.isIntersecting)) { demoObs.disconnect(); demoObs = null; demoTimers.push(setTimeout(rodar, 300)); }
+  }, { threshold: 0.9 });
+  demoObs.observe(box.querySelector("label")); // começa quando a 1ª caixinha aparece (quase) inteira
+}
+
+function fecharArena() {
+  pararDemo();
+  $("arenaVideo").innerHTML = ""; // para o vídeo
+  closeModal($("arenaModal"));
+}
+$("arenaGo").addEventListener("click", () => {
+  if ($("arenaChecks").classList.contains("demo")) { // clicou durante a demonstração: nada vale
+    $("arenaChecks").querySelectorAll("input").forEach(i => { i.checked = false; });
+    pararDemo();
+  }
+  const faltando = [...$("arenaChecks").querySelectorAll("label")].filter(l => !l.querySelector("input").checked);
+  faltando.forEach(l => l.classList.add("falta"));
+  if (faltando.length) {
+    $("arenaError").textContent = "É obrigatório marcar todos os itens antes de fazer a sua inscrição.";
+    faltando[0].querySelector("input").focus();
+    return;
+  }
+  selected = arenaAberta;
+  fecharArena();
+  renderSlots();
+  show("s-horario");
+});
+$("arenaBack").addEventListener("click", fecharArena);
+
+// ---------- Feriados ----------
+function chaveDia(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function feriado(d) { return CONFIG.feriados[chaveDia(d)] || ""; }
+function avisoFeriado(nome, d) {
+  const p = document.createElement("p");
+  p.className = "aviso-feriado";
+  p.textContent = "⚠ Feriado nacional (" + nome + ", " + d.getDate() + " " + MESES[d.getMonth()] + "): todas as atividades deste dia estão canceladas.";
+  return p;
+}
+
+// ---------- Fluent Labs ----------
+// O próximo horário fica em destaque no topo. "ENTRAR NA SALA" só aparece de 5 min antes até 5 min depois
+// do início; fora disso, "COPIAR LINK" copia o link da sala e mostra o aviso para salvar.
+const JANELA = 5 * 60000;
+const ANTES_AO_VIVO = 10 * 60000; // destaque AO VIVO a partir de 10 min antes do início
+function proximaLab(l) {
+  const now = new Date(), [h, m] = l.hora.split(":").map(Number);
+  const d = new Date(now);
+  d.setHours(h, m, 0, 0);
+  d.setDate(now.getDate() + (l.dia - now.getDay() + 7) % 7);
+  if (d.getTime() + JANELA < now.getTime()) d.setDate(d.getDate() + 7); // já passou dos 5 min de tolerância
+  return d;
+}
+const AVISO_LINK_LABS = "Salve esse link em local seguro para entrar no horário";
+
+// ---------- Avisos e cópia do link ----------
+// Copia o link da sala e mostra por 3 s: "SALVE EM UM LOCAL SEGURO"
+let toastTimer = null;
+function avisar(msg, extra, ms) {
+  const t = $("toast");
+  t.textContent = msg;
+  if (extra) { const e = document.createElement("span"); e.className = "toast-link"; e.textContent = extra; t.appendChild(e); }
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, ms || 3000);
+}
+// Dentro de iframe (ex.: Cademí) a cópia automática costuma ser bloqueada e window.prompt também.
+// Tenta: 1) Clipboard API  2) execCommand("copy")  3) mostra o link no próprio aviso para copiar à mão.
+function copiaAntiga(texto) {
+  const ta = document.createElement("textarea");
+  ta.value = texto; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, texto.length);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove();
+  return ok;
+}
+async function copiarTexto(texto) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(texto); return true; } } catch (e) { /* bloqueado no iframe */ }
+  return copiaAntiga(texto);
+}
+async function copiarComAviso(link, msg) {
+  const aviso = msg || "SALVE EM UM LOCAL SEGURO";
+  if (await copiarTexto(link)) avisar(aviso);
+  else avisar(aviso + ". Copie o link:", link, 8000); // não deu para copiar sozinho: mostra o link por mais tempo
+}
+
+
+function renderLabs() {
+  const box = $("labsSlots"), now = Date.now();
+  box.innerHTML = "";
+  const lista = praticas.map(l => ({ l, d: proximaLab(l) })).sort((x, y) => x.d - y.d);
+  const primeiro = lista.findIndex(x => !feriado(x.d));
+  lista.forEach(({ l, d }, i) => {
+    if (i === 1) {
+      const p = document.createElement("p");
+      p.className = "group-label";
+      p.textContent = "Demais dias e horários";
+      box.appendChild(p);
+    }
+    const fer = feriado(d);
+    if (fer) box.appendChild(avisoFeriado(fer, d));
+    const aberta = !fer && Math.abs(d.getTime() - now) <= JANELA;
+    // AO VIVO: de 10 min antes até 5 min depois do início (depois disso o horário vai para a próxima semana)
+    const aoVivo = !fer && d.getTime() - now <= ANTES_AO_VIVO && now - d.getTime() <= JANELA;
+    const faltamMin = Math.ceil((d.getTime() - now) / 60000);
+    const tag = aoVivo ? (faltamMin > 0 ? "Começa em " + faltamMin + " min" : "Acontecendo agora") : (aberta ? "Acontecendo agora" : "Próximo horário");
+    const row = document.createElement("div");
+    row.className = "slot labs-slot" + (i === primeiro ? " featured" : "") + (aoVivo ? " ao-vivo" : "") + (fer ? " cancelado" : "");
+    row.innerHTML = (aoVivo ? '<span class="ao-vivo-badge">AO VIVO</span>' : '') + '<span class="hora"></span><span>' +
+      (i === primeiro || aoVivo ? '<span class="tag">' + tag + '</span>' : '') +
+      '<span class="lab-tipo"></span><span class="when"></span></span>';
+    row.querySelector(".hora").textContent = l.hora;
+    row.querySelector(".lab-tipo").textContent = l.tipo;
+    row.querySelector(".when").textContent = whenLabel(d);
+    if (!fer) {
+      let btn;
+      if (aberta) {
+        btn = document.createElement("a");
+        btn.className = "lab-btn entrar"; btn.href = l.link; btn.target = "_blank"; btn.rel = "noopener";
+        btn.textContent = "ENTRAR NA SALA";
+        btn.addEventListener("click", () => registrarLink("entrou", l.tipo, d));
+      } else {
+        btn = document.createElement("button");
+        btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
+        btn.addEventListener("click", () => { copiarComAviso(l.link, AVISO_LINK_LABS); registrarLink("copiou", l.tipo, d); });
+      }
+      btn.setAttribute("aria-label", btn.textContent + ": " + l.tipo + ", " + whenLabel(d) + " às " + l.hora);
+      row.appendChild(btn);
+    }
+    box.appendChild(row);
+  });
+}
+// Clicou no Fluent Labs: confere o e-mail na lista da Mentoria (com os dados já salvos, nem abre o popup)
+$("openLabs").addEventListener("click", () => {
+  intencao = "labs";
+  if (praticas.length) { renderLabs(); show("s-labs"); return; }
+  $("chosenText").textContent = "Fluent Labs · exclusivo da Mentoria";
+  enviarDados(true);
+});
+// Atualiza os botões sozinho enquanto a aluna está na tela (ex.: abre a sala quando chegar a hora)
+setInterval(() => {
+  if (document.querySelector(".lab-btn.pegar:focus")) return;
+  if (!$("s-labs").hidden) renderLabs();
+}, 20000);
+
+// ---------- Horários ----------
+function nextOccurrence(a) {
+  const now = new Date();
+  const d = new Date(now);
+  d.setHours(parseInt(a.hora, 10), 0, 0, 0);
+  d.setDate(now.getDate() + (a.dia - now.getDay() + 7) % 7);
+  if (d <= now) d.setDate(d.getDate() + 7);
+  return d;
+}
+function whenLabel(d) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const day = new Date(d); day.setHours(0, 0, 0, 0);
+  const diff = Math.round((day - today) / 86400000);
+  const base = DIAS[d.getDay()] + ", " + d.getDate() + " " + MESES[d.getMonth()];
+  if (diff === 0) return "Hoje · " + base;
+  if (diff === 1) return "Amanhã · " + base;
+  return base;
+}
+
+function renderSlots() {
+  const n = CONFIG.niveis[selected];
+  $("nivelLabel").textContent = n.nome + " · horário de Brasília";
+  const box = $("slots");
+  box.innerHTML = "";
+  CONFIG.arenas
+    .filter(a => a.nivel === selected)
+    .flatMap(a => [0, 1, 2, 3].map(sem => {
+      const d = nextOccurrence(a);
+      d.setDate(d.getDate() + 7 * sem);
+      return { a, d };
+    }))
+    .sort((x, y) => x.d - y.d)
+    .slice(0, 4) // a mais próxima em destaque + as 3 seguintes
+    .forEach(({ a, d }, i, lista) => {
+      if (i === 1) {
+        const p = document.createElement("p");
+        p.className = "group-label";
+        p.textContent = "Próximas datas";
+        box.appendChild(p);
+      }
+      const fer = feriado(d);
+      const destaque = i === lista.findIndex(x => !feriado(x.d));
+      if (fer) box.appendChild(avisoFeriado(fer, d));
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "slot" + (destaque ? " featured" : "") + (fer ? " cancelado" : "");
+      b.innerHTML = '<span class="hora"></span><span>' + (destaque ? '<span class="tag">Mais próxima</span>' : '') +
+        '<span class="when"></span></span><span class="arrow" aria-hidden="true">›</span>';
+      b.querySelector(".hora").textContent = a.hora;
+      b.querySelector(".when").textContent = whenLabel(d);
+      b.setAttribute("aria-label", whenLabel(d) + " às " + a.hora + (fer ? " (cancelada: feriado)" : ""));
+      if (fer) b.disabled = true;
+      else b.addEventListener("click", () => {
+        escolha = { a, d }; intencao = "arena";
+        $("chosenText").textContent = "Arena " + n.nome + " · " + whenLabel(d) + ", " + a.hora;
+        abrirDados();
+      });
+      box.appendChild(b);
+    });
+}
+
+// ---------- Confirmação e Parabéns ----------
+// Adiciona a aluna como participante do evento da Arena na agenda dos tutores (Apps Script);
+// ela recebe o convite com o link do Google Meet. Esta aba mostra o Parabéns com o material e o link.
+function abrirDados() {
+  $("formError").textContent = "";
+  $("dadosTitle").textContent = intencao === "labs" ? "Confirme que você é da Mentoria" : "Preencha seus dados";
+  $("startBtn").textContent = intencao === "labs" ? "Ver horários do Fluent Labs" : "Confirmar minha inscrição";
+  $("dadosVoltar").textContent = intencao === "labs" ? "Voltar" : "Escolher outro horário";
+  openModal($("dadosModal"));
+  $("fNome").focus({ preventScroll: true });
+}
+async function inscrever() {
+  const { a, d } = escolha;
+  avisar("Confirmando a sua inscrição…", null, 20000);
+  const res = a.meet ? await enviar({ tipo: "inscricao", nivel: selected, inicio: d.toISOString() }) : null;
+  $("toast").hidden = true;
+  if (res && res.feriado) { avisar("Esta data é feriado nacional e a Arena foi cancelada. Escolha outro horário.", null, 6000); return; }
+  if (res && res.lotada) { avisar("Esta Arena já está lotada. Escolha outro horário.", null, 6000); return; }
+  const link = (res && res.link) || a.meet || a.zoom;
+  const nome = CONFIG.niveis[selected].nome, quando = whenLabel(d) + ", " + a.hora;
+  const naAgenda = !!(res && res.ok && "link" in res); // "link" só vem do Apps Script, que de fato inscreve na agenda
+  $("fimAgenda").hidden = !naAgenda;
+  $("fimAgenda").textContent = "Este evento foi inserido na sua agenda. O convite foi enviado para " + aluna.email + ".";
+  if (naAgenda) {
+    $("fimKicker").textContent = "Inscrição confirmada";
+    $("fimTexto").textContent = "Você está inscrita na Arena " + nome + ". O convite com o link da sala foi enviado para " + aluna.email + ".";
+  } else if (!a.meet) {
+    $("fimKicker").textContent = "Falta um passo";
+    $("fimTexto").textContent = "Para esta Arena (" + nome + ", " + quando + "), a inscrição é feita na página do Zoom: abra o link abaixo e preencha seus dados.";
+  } else {
+    $("fimKicker").textContent = "Escolha registrada";
+    $("fimTexto").textContent = "Arena " + nome + " (" + quando + "). Não conseguimos enviar o convite agora: guarde o link da sala abaixo.";
+  }
+  $("fimArena").textContent = nome;
+  $("fimDia").textContent = whenLabel(d);
+  $("fimHora").textContent = a.hora + " (Brasília)";
+  $("fimLinkTxt").textContent = link;
+  $("fimCopiar").onclick = () => { copiarComAviso(link); registrarLink("copiou", "Arena " + nome, d); };
+  $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
+  historico = ["s-arenas"]; // depois de inscrita, VOLTAR leva ao começo
+  show("s-fim", true);
+}
+
+// ---------- Popups ----------
+$("nextStep").addEventListener("click", () => closeModal($("infoModal")));
+$("openInfo").addEventListener("click", () => openModal($("infoModal")));
+$("openFaq").addEventListener("click", () => openModal($("faqModal")));
+$("closeFaq").addEventListener("click", () => closeModal($("faqModal")));
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  ["infoModal", "faqModal", "blackModal", "dadosModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
+  if (!$("arenaModal").hidden) fecharArena();
+});
+
+// Link da Mentoria: Fluent Labs ao lado das Arenas e sem a opção "outros cursos" no aviso de e-mail
+if (MENTORIA) {
+  $("labsBlock").hidden = false;
+  $("arenasLabel").hidden = false;
+  $("s-arenas").classList.add("is-mentorada");
+  $("arenasSub").textContent = "Exclusivo da Mentoria: escolha uma Arena de Conversação ou o Fluent Labs.";
+  $("confirmOther").hidden = true;
+}
+// Dentro da Cademí, a aula manda o nome e o e-mail da aluna logada no endereço do quadro
+(() => {
+  const q = new URLSearchParams(location.search);
+  const email = (q.get("cuser_email") || "").trim().toLowerCase(), nome = (q.get("cuser_name") || "").trim();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) $("fEmail").value = email;
+  if (nome.length > 1) $("fNome").value = nome;
+})();
+
+$("foot").hidden = false;
+show("s-arenas");
+</script>
+</body>
+</html>
