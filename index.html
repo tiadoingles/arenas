@@ -324,9 +324,6 @@ body.modal-open { overflow: hidden; }
 @keyframes brilho-material { 0% { box-shadow: 0 0 0 0 rgba(46, 230, 194, .45); } 70%, 100% { box-shadow: 0 0 0 16px rgba(46, 230, 194, 0); } }
 @media (prefers-reduced-motion: reduce) { .material-destaque { animation: none; } }
 /* Popup de inscrição confirmada */
-.confirma-box { text-align: center; align-items: center; gap: 16px; max-width: 480px; }
-.confirma-box p { color: var(--text); font-size: 1.1rem; }
-.confirma-box strong { color: var(--accent); }
 .confirma-icone { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
 /* Mentoradas: dois blocos com tons diferentes — Arenas (azul) e Fluent Labs (dourado) */
 .praticas { display: flex; flex-direction: column; gap: 20px; }
@@ -683,18 +680,6 @@ body.modal-open { overflow: hidden; }
       <button class="btn btn-outline" type="button" id="confirmFix">Corrigir meu e-mail</button>
       <button class="btn btn-outline" type="button" id="confirmOther">Sou aluno de outros cursos</button>
     </div>
-  </div>
-</div>
-
-<!-- Popup: inscrição confirmada (abre antes da tela final) -->
-<div class="modal" id="fimModal" role="dialog" aria-modal="true" aria-labelledby="fimModalTitle" hidden>
-  <div class="modal-box confirma-box">
-    <div class="confirma-icone" aria-hidden="true">
-      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-    </div>
-    <h2 id="fimModalTitle">Parabéns! Sua inscrição está confirmada.</h2>
-    <p>Agora vou te mandar o <strong>Link</strong> para salvar e logo abaixo do Link vai estar o <strong>MATERIAL</strong> para você fazer o Download.</p>
-    <button class="btn" type="button" id="fimEntendido">ENTENDIDO!</button>
   </div>
 </div>
 
@@ -1375,9 +1360,7 @@ async function inscrever() {
   $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
   historico = ["s-arenas"]; // depois de inscrita, VOLTAR leva ao começo
   show("s-fim", true);
-  if (naAgenda) openModal($("fimModal")); // inscrição confirmada: aviso antes do link e do material
 }
-$("fimEntendido").addEventListener("click", () => { closeModal($("fimModal")); window.scrollTo(0, 0); });
 
 // ---------- Popups ----------
 $("nextStep").addEventListener("click", () => closeModal($("infoModal")));
@@ -1386,7 +1369,7 @@ $("openFaq").addEventListener("click", () => openModal($("faqModal")));
 $("closeFaq").addEventListener("click", () => closeModal($("faqModal")));
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
-  ["infoModal", "faqModal", "blackModal", "fimModal", "dadosModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
+  ["infoModal", "faqModal", "blackModal", "dadosModal"].forEach(id => { if (!$(id).hidden) closeModal($(id)); });
   if (!$("arenaModal").hidden) fecharArena();
 });
 
