@@ -1418,7 +1418,10 @@ function renderLabs() {
       } else {
         btn = document.createElement("button");
         btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
-        btn.addEventListener("click", async () => { const ok = await copiarTexto(l.link); registrarLink("copiou", l.tipo, d); abrirAgenda(l, d, ok); });
+        btn.addEventListener("click", async () => {
+          const ok = await copiarTexto(l.link); registrarLink("copiou", l.tipo, d);
+          abrirAgenda({ nome: l.tipo, link: l.link, d, hora: l.hora, duracao: DURACAO_LAB, semanal: true, google: "labs" }, ok);
+        });
       }
       btn.setAttribute("aria-label", btn.textContent + ": " + l.tipo + ", " + whenLabel(d) + " às " + l.hora);
       row.appendChild(btn);
@@ -1426,43 +1429,47 @@ function renderLabs() {
     box.appendChild(row);
   });
 }
-// ---------- Adicionar o Fluent Labs na agenda ----------
-// GOOGLE: o Apps Script convida a aluna para o evento real da agenda dos tutores (criar evento novo pelo link
-// faria o Google Agenda colocar outra sala do Meet). Apple (.ics) é semanal; Outlook e Yahoo, só o próximo dia.
-const DURACAO_LAB = 50; // minutos (igual ao evento na agenda dos tutores)
+// ---------- Adicionar na agenda (Fluent Labs e Arenas) ----------
+// O link que vai para a agenda é SEMPRE o mesmo que a aluna copiou (ev.link).
+// GOOGLE nunca cria evento novo (o Google Agenda poria outra sala do Meet): a aluna é convidada para o evento
+// real da agenda dos tutores. Labs: o Apps Script convida para a série. Arena: o convite já foi enviado na inscrição.
+// Apple (.ics), Outlook e Yahoo: evento com o link copiado (Labs no .ics é semanal; Arena é só a data inscrita).
+const DURACAO_LAB = 50;   // minutos (iguais aos eventos na agenda dos tutores)
+const DURACAO_ARENA = 60;
 let calEvento = null;
+// ev = { nome, link, d, hora, duracao, semanal, google: "labs" | "arena", convidada (Arena: convite já enviado) }
 // O aviso de salvar o link fica dentro do popup (o aviso amarelo cobriria os botões).
-function abrirAgenda(l, d, copiou) {
-  calEvento = { l, d };
+function abrirAgenda(ev, copiou, aviso) {
+  calEvento = ev;
   $("calStatus").hidden = true; $("calFechar").textContent = "Agora não";
-  $("calQuando").textContent = l.tipo + " · " + whenLabel(d) + " às " + l.hora;
+  $("calQuando").textContent = ev.nome + " · " + whenLabel(ev.d) + " às " + ev.hora;
   $("calKicker").textContent = copiou ? "Link copiado" : "Copie o link";
-  $("calAviso").textContent = AVISO_LINK_LABS + (copiou ? "." : ": ");
-  if (!copiou) { const e = document.createElement("span"); e.className = "cal-link"; e.textContent = l.link; $("calAviso").appendChild(e); }
+  $("calAviso").textContent = (aviso || AVISO_LINK_LABS) + (copiou ? "." : ": ");
+  if (!copiou) { const e = document.createElement("span"); e.className = "cal-link"; e.textContent = ev.link; $("calAviso").appendChild(e); }
   openModal($("calModal"));
 }
 function utcCompacto(d) { return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); } // 20261030T100000Z
 function linkAgenda(qual) {
-  const { l, d } = calEvento, fim = new Date(d.getTime() + DURACAO_LAB * 60000);
-  const titulo = l.tipo + " · Fluent Mind Academy";
-  const texto = "Link da sala: " + l.link + "\n\nEntre até 5 minutos antes do horário.";
+  const { nome, link, d, duracao } = calEvento, fim = new Date(d.getTime() + duracao * 60000);
+  const titulo = nome + " · Fluent Mind Academy";
+  const texto = "Link da sala: " + link + "\n\nEntre até 5 minutos antes do horário.";
   const q = o => Object.entries(o).map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
-  if (qual === "outlook") return "https://outlook.live.com/calendar/0/deeplink/compose?" + q({ path: "/calendar/action/compose", rru: "addevent", subject: titulo, startdt: d.toISOString(), enddt: fim.toISOString(), body: texto, location: l.link });
-  if (qual === "yahoo") return "https://calendar.yahoo.com/?" + q({ v: 60, title: titulo, st: utcCompacto(d), et: utcCompacto(fim), desc: texto, in_loc: l.link });
+  if (qual === "outlook") return "https://outlook.live.com/calendar/0/deeplink/compose?" + q({ path: "/calendar/action/compose", rru: "addevent", subject: titulo, startdt: d.toISOString(), enddt: fim.toISOString(), body: texto, location: link });
+  if (qual === "yahoo") return "https://calendar.yahoo.com/?" + q({ v: 60, title: titulo, st: utcCompacto(d), et: utcCompacto(fim), desc: texto, in_loc: link });
 }
 function baixarIcs() {
-  const { l, d } = calEvento, fim = new Date(d.getTime() + DURACAO_LAB * 60000);
+  const { nome, link, d, duracao, semanal } = calEvento, fim = new Date(d.getTime() + duracao * 60000);
   const esc = t => t.replace(/[\\;,]/g, m => "\\" + m).replace(/\n/g, "\\n");
   const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Fluent Mind Academy//Praticas//PT", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
-    "BEGIN:VEVENT", "UID:" + Date.now().toString(36) + "-labs@tiadoingles.com.br", "DTSTAMP:" + utcCompacto(new Date()),
-    "DTSTART:" + utcCompacto(d), "DTEND:" + utcCompacto(fim), "RRULE:FREQ=WEEKLY",
-    "SUMMARY:" + esc(l.tipo + " · Fluent Mind Academy"), "LOCATION:" + esc(l.link), "URL:" + l.link,
-    "DESCRIPTION:" + esc("Link da sala: " + l.link + "\n\nEntre até 5 minutos antes do horário."),
-    "BEGIN:VALARM", "TRIGGER:-PT15M", "ACTION:DISPLAY", "DESCRIPTION:" + esc(l.tipo + " começa em 15 minutos"), "END:VALARM",
-    "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    "BEGIN:VEVENT", "UID:" + Date.now().toString(36) + "-praticas@tiadoingles.com.br", "DTSTAMP:" + utcCompacto(new Date()),
+    "DTSTART:" + utcCompacto(d), "DTEND:" + utcCompacto(fim)].concat(semanal ? ["RRULE:FREQ=WEEKLY"] : []).concat([
+    "SUMMARY:" + esc(nome + " · Fluent Mind Academy"), "LOCATION:" + esc(link), "URL:" + link,
+    "DESCRIPTION:" + esc("Link da sala: " + link + "\n\nEntre até 5 minutos antes do horário."),
+    "BEGIN:VALARM", "TRIGGER:-PT15M", "ACTION:DISPLAY", "DESCRIPTION:" + esc(nome + " começa em 15 minutos"), "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"]).join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
-  a.download = "fluent-labs.ics";
+  a.download = (calEvento.google === "labs" ? "fluent-labs" : "arena") + ".ics";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
@@ -1471,11 +1478,15 @@ function calStatus(html, erro) {
   st.className = "cal-status" + (erro ? " erro" : ""); st.innerHTML = html; st.hidden = false;
 }
 async function agendaGoogle(b) {
-  const { d } = calEvento, txt = b.innerHTML;
-  b.disabled = true; b.textContent = "Adicionando…";
-  const res = await enviar({ tipo: "agenda-labs", inicio: d.toISOString() });
-  b.disabled = false; b.innerHTML = txt;
-  if (!res || !res.ok) { calStatus("Não consegui adicionar agora. Tente de novo em instantes.", true); return; }
+  const ev = calEvento, d = ev.d, txt = b.innerHTML;
+  if (!ev.convidada) {
+    b.disabled = true; b.textContent = "Adicionando…";
+    const res = await enviar(ev.google === "labs" ? { tipo: "agenda-labs", inicio: d.toISOString() } : { tipo: "inscricao", nivel: ev.nivel, inicio: d.toISOString() });
+    b.disabled = false; b.innerHTML = txt;
+    // só confirma se o evento do convite tem exatamente o link que a aluna copiou
+    if (!res || !res.ok || res.link !== ev.link) { calStatus("Não consegui adicionar agora. Tente de novo em instantes.", true); return; }
+    if (ev.google === "arena") ev.convidada = true;
+  }
   const email = document.createElement("b"); email.textContent = aluna ? aluna.email : "seu e-mail";
   calStatus("Pronto! O convite com o link da sala foi enviado para " + email.outerHTML +
     " e aparece na sua Agenda do Google.<br><a href=\"https://calendar.google.com/calendar/r/day/" + d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate() +
@@ -1603,7 +1614,14 @@ async function inscrever() {
   $("fimDia").textContent = whenLabel(d);
   $("fimHora").textContent = a.hora + " (Brasília)";
   $("fimLinkTxt").textContent = link;
-  $("fimCopiar").onclick = () => { copiarComAviso(link); registrarLink("copiou", "Arena " + nome, d); };
+  // COPIAR LINK: copia e abre o popup para pôr na agenda, sempre com este mesmo link
+  $("fimCopiar").onclick = async () => {
+    registrarLink("copiou", "Arena " + nome, d);
+    if (!a.meet) { copiarComAviso(link); return; } // Zoom: só copia
+    const ok = await copiarTexto(link);
+    abrirAgenda({ nome: "Arena " + nome, link, d, hora: a.hora, duracao: DURACAO_ARENA, semanal: false,
+      google: "arena", nivel: selected, convidada: naAgenda }, ok, "Salve esse link em local seguro para entrar no horário");
+  };
   $("materialBtn").href = selected === "rc" ? CONFIG.materialRecemChegados : CONFIG.materialDemais;
   historico = ["s-arenas"]; // depois de inscrita, VOLTAR leva ao começo
   show("s-fim", true);
