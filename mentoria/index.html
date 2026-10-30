@@ -1156,9 +1156,9 @@ $("blackNo").addEventListener("click", () => {
 });
 
 function proximaSegunda() {
-  const d = new Date();
-  d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
-  return "segunda-feira, " + d.getDate() + " " + MESES[d.getMonth()];
+  const n = br(new Date());
+  const d = br(new Date(Date.now() + ((8 - n.getUTCDay()) % 7 || 7) * DIA_MS));
+  return "segunda-feira, " + d.getUTCDate() + " " + MESES[d.getUTCMonth()];
 }
 $("weekNotYet").addEventListener("click", async () => {
   $("weekNotYet").disabled = true;
@@ -1324,12 +1324,22 @@ $("arenaGo").addEventListener("click", () => {
 $("arenaBack").addEventListener("click", fecharArena);
 
 // ---------- Feriados ----------
-function chaveDia(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+// ---------- Datas sempre no horário de Brasília ----------
+// Os horários da página são de Brasília. As contas não usam o relógio/fuso do aparelho da aluna, para quem está
+// fora do Brasil o evento cair na hora certa (na agenda e no convite). O Brasil não tem horário de verão desde 2019.
+const FUSO_BR = -3 * 3600000, DIA_MS = 86400000;
+function br(d) { return new Date(d.getTime() + FUSO_BR); } // ler sempre com getUTC*
+// Próximo "dia da semana + hora" em Brasília a partir de agora (pode ser hoje)
+function proximoBR(dia, h, m) {
+  const n = br(new Date());
+  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + (dia - n.getUTCDay() + 7) % 7, h, m) - FUSO_BR);
+}
+function chaveDia(d) { const b = br(d); return b.getUTCFullYear() + "-" + String(b.getUTCMonth() + 1).padStart(2, "0") + "-" + String(b.getUTCDate()).padStart(2, "0"); }
 function feriado(d) { return CONFIG.feriados[chaveDia(d)] || ""; }
 function avisoFeriado(nome, d) {
   const p = document.createElement("p");
   p.className = "aviso-feriado";
-  p.textContent = "⚠ Feriado nacional (" + nome + ", " + d.getDate() + " " + MESES[d.getMonth()] + "): todas as atividades deste dia estão canceladas.";
+  p.textContent = "⚠ Feriado nacional (" + nome + ", " + br(d).getUTCDate() + " " + MESES[br(d).getUTCMonth()] + "): todas as atividades deste dia estão canceladas.";
   return p;
 }
 
@@ -1339,11 +1349,9 @@ function avisoFeriado(nome, d) {
 const JANELA = 5 * 60000;
 const ANTES_AO_VIVO = 10 * 60000; // destaque AO VIVO a partir de 10 min antes do início
 function proximaLab(l) {
-  const now = new Date(), [h, m] = l.hora.split(":").map(Number);
-  const d = new Date(now);
-  d.setHours(h, m, 0, 0);
-  d.setDate(now.getDate() + (l.dia - now.getDay() + 7) % 7);
-  if (d.getTime() + JANELA < now.getTime()) d.setDate(d.getDate() + 7); // já passou dos 5 min de tolerância
+  const [h, m] = l.hora.split(":").map(Number);
+  const d = proximoBR(l.dia, h, m);
+  if (d.getTime() + JANELA < Date.now()) return new Date(d.getTime() + 7 * DIA_MS); // já passou dos 5 min de tolerância
   return d;
 }
 const AVISO_LINK_LABS = "Salve esse link em local seguro para entrar no horário";
@@ -1457,6 +1465,17 @@ function linkAgenda(qual) {
   if (qual === "outlook") return "https://outlook.live.com/calendar/0/deeplink/compose?" + q({ path: "/calendar/action/compose", rru: "addevent", subject: titulo, startdt: d.toISOString(), enddt: fim.toISOString(), body: texto, location: link });
   if (qual === "yahoo") return "https://calendar.yahoo.com/?" + q({ v: 60, title: titulo, st: utcCompacto(d), et: utcCompacto(fim), desc: texto, in_loc: link });
 }
+// Padrão das agendas (RFC 5545): linha com no máximo 75 bytes; as demais continuam com um espaço na frente
+function dobrarLinha(linha) {
+  const partes = []; let atual = "", bytes = 0;
+  for (const ch of linha) {
+    const n = new TextEncoder().encode(ch).length;
+    if (bytes + n > (partes.length ? 74 : 75)) { partes.push(atual); atual = ""; bytes = 0; }
+    atual += ch; bytes += n;
+  }
+  partes.push(atual);
+  return partes.join("\r\n ");
+}
 function baixarIcs() {
   const { nome, link, d, duracao, semanal } = calEvento, fim = new Date(d.getTime() + duracao * 60000);
   const esc = t => t.replace(/[\\;,]/g, m => "\\" + m).replace(/\n/g, "\\n");
@@ -1466,7 +1485,7 @@ function baixarIcs() {
     "SUMMARY:" + esc(nome + " · Fluent Mind Academy"), "LOCATION:" + esc(link), "URL:" + link,
     "DESCRIPTION:" + esc("Link da sala: " + link + "\n\nEntre até 5 minutos antes do horário."),
     "BEGIN:VALARM", "TRIGGER:-PT15M", "ACTION:DISPLAY", "DESCRIPTION:" + esc(nome + " começa em 15 minutos"), "END:VALARM",
-    "END:VEVENT", "END:VCALENDAR"]).join("\r\n");
+    "END:VEVENT", "END:VCALENDAR"]).map(dobrarLinha).join("\r\n") + "\r\n";
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
   a.download = (calEvento.google === "labs" ? "fluent-labs" : "arena") + ".ics";
@@ -1489,7 +1508,7 @@ async function agendaGoogle(b) {
   }
   const email = document.createElement("b"); email.textContent = aluna ? aluna.email : "seu e-mail";
   calStatus("Pronto! O convite com o link da sala foi enviado para " + email.outerHTML +
-    " e aparece na sua Agenda do Google.<br><a href=\"https://calendar.google.com/calendar/r/day/" + d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate() +
+    " e aparece na sua Agenda do Google.<br><a href=\"https://calendar.google.com/calendar/r/day/" + chaveDia(d).replace(/-0?/g, "/") +
     "\" target=\"_blank\" rel=\"noopener\">ABRIR MINHA AGENDA DO GOOGLE →</a>");
   $("calFechar").textContent = "Fechar";
 }
@@ -1518,18 +1537,14 @@ setInterval(() => {
 
 // ---------- Horários ----------
 function nextOccurrence(a) {
-  const now = new Date();
-  const d = new Date(now);
-  d.setHours(parseInt(a.hora, 10), 0, 0, 0);
-  d.setDate(now.getDate() + (a.dia - now.getDay() + 7) % 7);
-  if (d <= now) d.setDate(d.getDate() + 7);
+  const d = proximoBR(a.dia, parseInt(a.hora, 10), 0);
+  if (d.getTime() <= Date.now()) return new Date(d.getTime() + 7 * DIA_MS);
   return d;
 }
 function whenLabel(d) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const day = new Date(d); day.setHours(0, 0, 0, 0);
-  const diff = Math.round((day - today) / 86400000);
-  const base = DIAS[d.getDay()] + ", " + d.getDate() + " " + MESES[d.getMonth()];
+  const b = br(d), t = br(new Date());
+  const diff = Math.round((Date.UTC(b.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate()) - Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate())) / DIA_MS);
+  const base = DIAS[b.getUTCDay()] + ", " + b.getUTCDate() + " " + MESES[b.getUTCMonth()];
   if (diff === 0) return "Hoje · " + base;
   if (diff === 1) return "Amanhã · " + base;
   return base;
@@ -1543,8 +1558,7 @@ function renderSlots() {
   CONFIG.arenas
     .filter(a => a.nivel === selected)
     .flatMap(a => [0, 1, 2, 3].map(sem => {
-      const d = nextOccurrence(a);
-      d.setDate(d.getDate() + 7 * sem);
+      const d = new Date(nextOccurrence(a).getTime() + 7 * sem * DIA_MS);
       return { a, d };
     }))
     .sort((x, y) => x.d - y.d)
