@@ -320,6 +320,9 @@ body.modal-open { overflow: hidden; }
 .cal-btn:hover, .cal-btn:focus-visible { border-color: var(--accent-line); background: var(--accent-soft); }
 .cal-btn svg { flex: 0 0 auto; }
 .cal-quando { font-weight: 700; color: var(--fg); }
+.cal-status { border-radius: 12px; padding: 12px 14px; font-weight: 700; background: var(--accent-soft); border: 1px solid var(--accent-line); color: var(--fg); }
+.cal-status.erro { background: rgba(255, 181, 71, .1); border-color: rgba(255, 181, 71, .45); color: var(--warn); }
+.cal-status a { display: inline-block; margin-top: 8px; color: var(--accent); font-weight: 800; }
 #calAviso .cal-link { display: block; margin-top: 4px; word-break: break-all; user-select: all; color: var(--accent); }
 @media (max-width: 360px) { .cal-opcoes { grid-template-columns: 1fr; } }
 #dadosModal .form { gap: 14px; }
@@ -722,6 +725,7 @@ body.modal-open { overflow: hidden; }
       <button class="cal-btn" type="button" data-cal="outlook"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="13" height="16" rx="2" fill="#0A64C8"/><path fill="#fff" d="M8.5 8.2c-2 0-3.3 1.6-3.3 3.8s1.3 3.8 3.3 3.8 3.3-1.6 3.3-3.8-1.3-3.8-3.3-3.8zm0 6c-1 0-1.6-.9-1.6-2.2s.6-2.2 1.6-2.2 1.6.9 1.6 2.2-.6 2.2-1.6 2.2z"/><path fill="#28A8EA" d="M15 7h6a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-6z"/><path fill="#fff" d="m15 9 3.5 2.5L22 9v1.3l-3.5 2.4-3.5-2.4z"/></svg>OUTLOOK</button>
       <button class="cal-btn" type="button" data-cal="yahoo"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5" fill="#6001D2"/><path fill="#fff" d="M5 7.5h3l2 5 2-5h3l-4.5 10h-3l1.2-2.6zM16.5 7.5h3l-2.4 6h-2.6zM15.4 15h2.2v2.4h-2.2z"/></svg>YAHOO</button>
     </div>
+    <p class="cal-status" id="calStatus" role="status" hidden></p>
     <button class="btn btn-outline" type="button" id="calFechar">Agora não</button>
   </div>
 </div>
@@ -1422,12 +1426,14 @@ function renderLabs() {
   });
 }
 // ---------- Adicionar o Fluent Labs na agenda ----------
-// Google e Apple (arquivo .ics) entram como evento semanal; Outlook e Yahoo pela web só aceitam o próximo dia.
-const DURACAO_LAB = 60; // minutos
+// GOOGLE: o Apps Script convida a aluna para o evento real da agenda dos tutores (criar evento novo pelo link
+// faria o Google Agenda colocar outra sala do Meet). Apple (.ics) é semanal; Outlook e Yahoo, só o próximo dia.
+const DURACAO_LAB = 50; // minutos (igual ao evento na agenda dos tutores)
 let calEvento = null;
 // O aviso de salvar o link fica dentro do popup (o aviso amarelo cobriria os botões).
 function abrirAgenda(l, d, copiou) {
   calEvento = { l, d };
+  $("calStatus").hidden = true; $("calFechar").textContent = "Agora não";
   $("calQuando").textContent = l.tipo + " · " + whenLabel(d) + " às " + l.hora;
   $("calKicker").textContent = copiou ? "Link copiado" : "Copie o link";
   $("calAviso").textContent = AVISO_LINK_LABS + (copiou ? "." : ": ");
@@ -1440,7 +1446,6 @@ function linkAgenda(qual) {
   const titulo = l.tipo + " · Fluent Mind Academy";
   const texto = "Link da sala: " + l.link + "\n\nEntre até 5 minutos antes do horário.";
   const q = o => Object.entries(o).map(([k, v]) => k + "=" + encodeURIComponent(v)).join("&");
-  if (qual === "google") return "https://calendar.google.com/calendar/render?" + q({ action: "TEMPLATE", text: titulo, dates: utcCompacto(d) + "/" + utcCompacto(fim), details: texto, location: l.link, recur: "RRULE:FREQ=WEEKLY" });
   if (qual === "outlook") return "https://outlook.live.com/calendar/0/deeplink/compose?" + q({ path: "/calendar/action/compose", rru: "addevent", subject: titulo, startdt: d.toISOString(), enddt: fim.toISOString(), body: texto, location: l.link });
   if (qual === "yahoo") return "https://calendar.yahoo.com/?" + q({ v: 60, title: titulo, st: utcCompacto(d), et: utcCompacto(fim), desc: texto, in_loc: l.link });
 }
@@ -1460,9 +1465,26 @@ function baixarIcs() {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
+function calStatus(html, erro) {
+  const st = $("calStatus");
+  st.className = "cal-status" + (erro ? " erro" : ""); st.innerHTML = html; st.hidden = false;
+}
+async function agendaGoogle(b) {
+  const { d } = calEvento, txt = b.innerHTML;
+  b.disabled = true; b.textContent = "Adicionando…";
+  const res = await enviar({ tipo: "agenda-labs", inicio: d.toISOString() });
+  b.disabled = false; b.innerHTML = txt;
+  if (!res || !res.ok) { calStatus("Não consegui adicionar agora. Tente de novo em instantes.", true); return; }
+  const email = document.createElement("b"); email.textContent = aluna ? aluna.email : "seu e-mail";
+  calStatus("Pronto! O convite com o link da sala foi enviado para " + email.outerHTML +
+    " e aparece na sua Agenda do Google.<br><a href=\"https://calendar.google.com/calendar/r/day/" + d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate() +
+    "\" target=\"_blank\" rel=\"noopener\">ABRIR MINHA AGENDA DO GOOGLE →</a>");
+  $("calFechar").textContent = "Fechar";
+}
 document.querySelectorAll("[data-cal]").forEach(b => b.addEventListener("click", () => {
   if (!calEvento) return;
   const qual = b.dataset.cal;
+  if (qual === "google") { agendaGoogle(b); return; }
   if (qual === "apple") baixarIcs();
   else window.open(linkAgenda(qual), "_blank", "noopener");
   closeModal($("calModal"));
