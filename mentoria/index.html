@@ -861,21 +861,26 @@ const CONFIG = {
     "Estou ciente que a sala abre com 5 min de antecedência",
     "Assisti o vídeo de instruções até o final"
   ],
-  // dia: 1 = segunda ... 5 = sexta
-  // dia: 1 = segunda ... 5 = sexta. meet = link do Google Meet do evento na agenda dos tutores.
-  // zoom = só para as Arenas que ainda não têm Meet na agenda (inscrição antiga no Zoom).
+  // Sala do Zoom de cada nível (13/11/2026: saiu o Google Meet). A mesma lista está no Apps Script, em ZOOM_ARENA.
+  zoom: {
+    rc: "https://us02web.zoom.us/j/88664213475",
+    ba: "https://us02web.zoom.us/j/82320981797",
+    in: "https://us02web.zoom.us/j/85315819702",
+    av: "https://us02web.zoom.us/j/82377175823"
+  },
+  // dia: 1 = segunda ... 5 = sexta. O link de cada horário é o do nível (CONFIG.zoom).
   arenas: [
-    { dia: 1, hora: "17h", nivel: "av", meet: "https://meet.google.com/dih-qdgf-ejb" },
-    { dia: 1, hora: "18h", nivel: "ba", meet: "https://meet.google.com/qux-rwtm-viv" },
-    { dia: 1, hora: "20h", nivel: "in", meet: "https://meet.google.com/cfg-tfyw-dsx" },
-    { dia: 2, hora: "11h", nivel: "in", meet: "https://meet.google.com/vko-qnwg-fsj" },
-    { dia: 3, hora: "11h", nivel: "ba", meet: "https://meet.google.com/xib-uuih-ccu" },
-    { dia: 3, hora: "18h", nivel: "rc", meet: "https://meet.google.com/fej-ywfs-gns" },
-    { dia: 3, hora: "20h", nivel: "in", meet: "https://meet.google.com/kcc-ruct-gia" },
-    { dia: 4, hora: "11h", nivel: "in", meet: "https://meet.google.com/mre-wmdb-qds" },
-    { dia: 4, hora: "17h", nivel: "rc", meet: "https://meet.google.com/dnf-ydqi-cri" },
-    { dia: 4, hora: "19h", nivel: "av", meet: "https://meet.google.com/yow-vmfa-ajz" },
-    { dia: 5, hora: "11h", nivel: "ba", meet: "https://meet.google.com/mem-dinm-usd" }
+    { dia: 1, hora: "17h", nivel: "av" },
+    { dia: 1, hora: "18h", nivel: "ba" },
+    { dia: 1, hora: "20h", nivel: "in" },
+    { dia: 2, hora: "11h", nivel: "in" },
+    { dia: 3, hora: "11h", nivel: "ba" },
+    { dia: 3, hora: "18h", nivel: "rc" },
+    { dia: 3, hora: "20h", nivel: "in" },
+    { dia: 4, hora: "11h", nivel: "in" },
+    { dia: 4, hora: "17h", nivel: "rc" },
+    { dia: 4, hora: "19h", nivel: "av" },
+    { dia: 5, hora: "11h", nivel: "ba" }
   ]
 };
 // ================================================================
@@ -1439,7 +1444,7 @@ function renderLabs() {
 }
 // ---------- Adicionar na agenda (Fluent Labs e Arenas) ----------
 // O link que vai para a agenda é SEMPRE o mesmo que a aluna copiou (ev.link).
-// GOOGLE nunca cria evento novo (o Google Agenda poria outra sala do Meet): a aluna é convidada para o evento
+// GOOGLE nunca cria evento novo (o Google Agenda poderia pôr uma sala do Meet junto): a aluna é convidada para o evento
 // real da agenda dos tutores. Labs: o Apps Script convida para a série. Arena: o convite já foi enviado na inscrição.
 // Apple (.ics), Outlook e Yahoo: evento com o link copiado (Labs no .ics é semanal; Arena é só a data inscrita).
 const DURACAO_LAB = 50;   // minutos (iguais aos eventos na agenda dos tutores)
@@ -1593,7 +1598,7 @@ function renderSlots() {
 
 // ---------- Confirmação e Parabéns ----------
 // Adiciona a aluna como participante do evento da Arena na agenda dos tutores (Apps Script);
-// ela recebe o convite com o link do Google Meet. Esta aba mostra o Parabéns com o material e o link.
+// ela recebe o convite com o link da sala do Zoom. Esta aba mostra o Parabéns com o material e o link.
 function abrirDados() {
   $("formError").textContent = "";
   $("dadosTitle").textContent = intencao === "labs" ? "Confirme que você é da Mentoria" : "Preencha seus dados";
@@ -1605,21 +1610,18 @@ function abrirDados() {
 async function inscrever() {
   const { a, d } = escolha;
   avisar("Confirmando a sua inscrição…", null, 20000);
-  const res = a.meet ? await enviar({ tipo: "inscricao", nivel: selected, inicio: d.toISOString() }) : null;
+  const res = await enviar({ tipo: "inscricao", nivel: selected, inicio: d.toISOString() });
   $("toast").hidden = true;
   if (res && res.feriado) { avisar("Esta data é feriado nacional e a Arena foi cancelada. Escolha outro horário.", null, 6000); return; }
   if (res && res.lotada) { avisar("Esta Arena já está lotada. Escolha outro horário.", null, 6000); return; }
-  const link = (res && res.link) || a.meet || a.zoom;
+  const link = CONFIG.zoom[selected]; // sempre a sala do Zoom do nível (o Apps Script devolve a mesma)
   const nome = CONFIG.niveis[selected].nome, quando = whenLabel(d) + ", " + a.hora;
-  const naAgenda = !!(res && res.ok && "link" in res); // "link" só vem do Apps Script, que de fato inscreve na agenda
+  const naAgenda = !!(res && res.ok && res.link === link); // convite enviado, e com o mesmo link da página
   $("fimAgenda").hidden = !naAgenda;
   $("fimAgenda").textContent = "Este evento foi inserido na sua agenda. O convite foi enviado para " + aluna.email + ".";
   if (naAgenda) {
     $("fimKicker").textContent = "Inscrição confirmada";
     $("fimTexto").textContent = "Você está inscrita na Arena " + nome + ". O convite com o link da sala foi enviado para " + aluna.email + ".";
-  } else if (!a.meet) {
-    $("fimKicker").textContent = "Falta um passo";
-    $("fimTexto").textContent = "Para esta Arena (" + nome + ", " + quando + "), a inscrição é feita na página do Zoom: abra o link abaixo e preencha seus dados.";
   } else {
     $("fimKicker").textContent = "Escolha registrada";
     $("fimTexto").textContent = "Arena " + nome + " (" + quando + "). Não conseguimos enviar o convite agora: guarde o link da sala abaixo.";
@@ -1631,7 +1633,6 @@ async function inscrever() {
   // COPIAR LINK: copia e abre o popup para pôr na agenda, sempre com este mesmo link
   $("fimCopiar").onclick = async () => {
     registrarLink("copiou", "Arena " + nome, d);
-    if (!a.meet) { copiarComAviso(link); return; } // Zoom: só copia
     const ok = await copiarTexto(link);
     abrirAgenda({ nome: "Arena " + nome, link, d, hora: a.hora, duracao: DURACAO_ARENA, semanal: false,
       google: "arena", nivel: selected, convidada: naAgenda }, ok, "Salve esse link em local seguro para entrar no horário");
