@@ -1432,7 +1432,7 @@ function renderLabs() {
         btn.type = "button"; btn.className = "lab-btn pegar"; btn.textContent = "COPIAR LINK";
         btn.addEventListener("click", async () => {
           const ok = await copiarTexto(l.link); registrarLink("copiou", l.tipo, d);
-          abrirAgenda({ nome: l.tipo, link: l.link, d, hora: l.hora, duracao: DURACAO_LAB, semanal: true, google: "labs" }, ok);
+          abrirAgenda({ nome: l.tipo, link: l.link, d, hora: l.hora, duracao: DURACAO_LAB, semanal: false, google: "labs" }, ok);
         });
       }
       btn.setAttribute("aria-label", btn.textContent + ": " + l.tipo + ", " + whenLabel(d) + " às " + l.hora);
@@ -1511,8 +1511,8 @@ async function agendaGoogle(b) {
     if (ev.google === "arena") ev.convidada = true;
   }
   const email = document.createElement("b"); email.textContent = aluna ? aluna.email : "seu e-mail";
-  calStatus("Pronto! O convite com o link da sala foi enviado para " + email.outerHTML +
-    " e aparece na sua Agenda do Google.<br><a href=\"https://calendar.google.com/calendar/r/day/" + chaveDia(d).replace(/-0?/g, "/") +
+  calStatus("Pronto! Enviamos 1 e-mail para " + email.outerHTML +
+    " com o dia, o horário e o link da sala.<br><a href=\"https://calendar.google.com/calendar/r/day/" + chaveDia(d).replace(/-0?/g, "/") +
     "\" target=\"_blank\" rel=\"noopener\">ABRIR MINHA AGENDA DO GOOGLE →</a>");
   $("calFechar").textContent = "Fechar";
 }
@@ -1617,7 +1617,7 @@ async function inscrever() {
   const nome = CONFIG.niveis[selected].nome, quando = whenLabel(d) + ", " + a.hora;
   const naAgenda = !!(res && res.ok && res.link === link); // convite enviado, e com o mesmo link da página
   $("fimAgenda").hidden = !naAgenda;
-  $("fimAgenda").textContent = "Este evento foi inserido na sua agenda. O convite foi enviado para " + aluna.email + ".";
+  $("fimAgenda").textContent = "Enviamos 1 e-mail para " + aluna.email + " com o dia, o horário e o link da sala.";
   if (naAgenda) {
     $("fimKicker").textContent = "Inscrição confirmada";
     $("fimTexto").textContent = "Você está inscrita na Arena " + nome + ". O convite com o link da sala foi enviado para " + aluna.email + ".";
